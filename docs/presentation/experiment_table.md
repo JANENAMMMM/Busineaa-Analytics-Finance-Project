@@ -122,3 +122,34 @@
 | llm6_d_lgb_aggr_news | llm6_d0_lgb_aggr | 피처: + 뉴스 LLM 4개 (관련·상회·하회·방향), 결측 그대로 | 0.3520 | 0.4204 | 0.3865 | 0.4969 | 0.4139 | 0.4102 | 0.4679 | 0.4894 | 0.5051 | -0.0185 | 3 | k 3.0/2.5/1.5/2.5; rounds 40.0/47.0/50.0/42.0 |
 | rd4_d_lgb_aggr_reddit | llm6_d0_lgb_aggr | 피처: + Reddit LLM 4개 (직접·상승·하락·방향) | 0.3531 | 0.4169 | 0.3879 | 0.4890 | 0.4117 | 0.4107 | 0.4554 | 0.4836 | 0.5014 | -0.0264 | 1 | k 3.0/2.5/2.5/2.0; rounds 50.0/48.0/50.0/48.0 |
 | llm6rd4_d_lgb_aggr_both | llm6_d0_lgb_aggr | 피처: + 뉴스 4 + Reddit 4 | 0.3709 | 0.3961 | 0.3930 | 0.5046 | 0.4161 | 0.4417 | 0.4757 | 0.4964 | 0.5190 | -0.0108 | 3 | k 3.0/3.0/3.0/2.5; rounds 47.0/48.0/57.0/48.0 |
+
+## 추가 실험 (2026-10-08): 규칙 분산·외부 데이터·확실도
+
+- 출처: `scripts/a_more.py`(W&B tags `more_v1`), `scripts/a_llm2.py`(tags `llm2`). 해설은 `docs/worklog/2026-10-08_A_확실도_추가실험.md`.
+- "상승 폴드" 는 `llm6_base`(= `v2_rule_base`) 대비. LightGBM 행만 `llm6_d0_lgb_aggr` 대비. **채택 기준 통과 0개.**
+- 월은 대상일 연-월, 모든 폴드 예측을 묶은 값 (W&B monthly 와 같음).
+- 외부 데이터: VIX 는 cdn.cboe.com `VIX_History.csv`, 기준일 종가(16:15 ET 확정)만 사용. 홀드아웃 행은 읽는 즉시 버림.
+
+| run | 비교 대상 | 바꾼 것 | f1 | f2 | f3 | **f4** | 평균 | unseen | 3월 | 4월 | 5월 | vs 규칙 f4 | 상승 폴드 | 학습된 파라미터 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| [more_innerwin](https://wandb.ai/BI_finance_project/finance-direction/runs/pxwjw54n) | llm6_base | 학습 창을 train 끝 60일 점수로 고름 (전체/250/120) | 0.4475 | 0.4356 | 0.4020 | 0.5154 | 0.4501 | 0.4181 | 0.4766 | 0.5170 | 0.5320 | +0.0000 | 1 | lam 0.4/0.3/0.1/0.2; window 197/257/250/377 |
+| [more_bag30](https://wandb.ai/BI_finance_project/finance-direction/runs/cwonoo07) | llm6_base | 날짜 bootstrap 30개 규칙의 등급 중간값 | 0.4325 | 0.4348 | 0.4040 | 0.5151 | 0.4466 | 0.4216 | 0.4799 | 0.5161 | 0.5322 | -0.0003 | 1 |  |
+| [more_rsize_vix](https://wandb.ai/BI_finance_project/finance-direction/runs/9hg9jpw6) | llm6_base | 급등락 경계 ← VIX 종가 (외부: CBOE) | 0.4393 | 0.4278 | 0.3985 | 0.5212 | 0.4467 | 0.3980 | 0.4916 | 0.5233 | 0.5240 | +0.0057 | 1 | lam 0.4/0.3/0.2/0.2; delta -0.3/-0.3/-0.3/-0.3 |
+| [more_rsize_vixchg5](https://wandb.ai/BI_finance_project/finance-direction/runs/ybv7o6a1) | llm6_base | 급등락 경계 ← log(VIX / 5일 전 VIX) | 0.4385 | 0.4278 | 0.3962 | 0.5179 | 0.4451 | 0.4040 | 0.4985 | 0.5119 | 0.5250 | +0.0025 | 1 | lam 0.4/0.3/0.2/0.2; delta -0.3/-0.3/-0.3/-0.3 |
+| [more_rsize_dayabsgap](https://wandb.ai/BI_finance_project/finance-direction/runs/2zk1otur) | llm6_base | 급등락 경계 ← 그날 전 종목 |gap_z| 중앙값 | 0.4404 | 0.4144 | 0.3942 | 0.5157 | 0.4412 | 0.4080 | 0.4842 | 0.5177 | 0.5268 | +0.0003 | 1 | lam 0.4/0.3/0.2/0.2; delta -0.3/-0.3/-0.3/-0.3 |
+| [more_radd_analyst](https://wandb.ai/BI_finance_project/finance-direction/runs/2w7jgfaw) | llm6_base | s + b·sd·장 마감 후 애널리스트 순의견 | 0.4475 | 0.4373 | 0.4004 | 0.5144 | 0.4499 | 0.4194 | 0.4779 | 0.5141 | 0.5320 | -0.0010 | 1 | lam 0.4/0.3/0.2/0.2; beta 0.0/0.1/0.1/0.1 |
+| [more_struct](https://wandb.ai/BI_finance_project/finance-direction/runs/7c8fp7gv) | llm6_base | 구조 모형: 수익률 = (1-rho)x갭 + 잡음(sd = c0 + c1 x vol20) -> 등급 확률 -> 기대 등급 | 0.4341 | 0.4272 | 0.3943 | 0.5176 | 0.4433 | 0.4186 | 0.4908 | 0.5288 | 0.5143 | +0.0022 |  | lam 0.0/0.0/0.0/0.0; rho 0.0/0.3/0.0/0.0; c0 0.0/0.0/0.0/0.003; c1 0.6/0.8/1.0/1.0 |
+| [more_struct_ext](https://wandb.ai/BI_finance_project/finance-direction/runs/9rgsf0e3) | more_struct | 같은 구조 + 시간외 변동 lam 도 train | 0.4384 | 0.4083 | 0.3946 | 0.5168 | 0.4395 | 0.4124 | 0.4848 | 0.5257 | 0.5181 | +0.0014 |  | lam 0.3/0.3/0.3/0.1; rho 0.3/0.3/0.0/0.0; c0 0.0/0.0/0.006/0.0; c1 0.6/0.6/1.0/1.0 |
+| [llm2_rsize_news_earnguide](https://wandb.ai/BI_finance_project/finance-direction/runs/kc1pq2i0) | llm6_base | 급등락 경계 ← 뉴스 실적+가이던스 사건 비율 | 0.4475 | 0.4356 | 0.4033 | 0.5137 | 0.4500 | 0.4166 | 0.4742 | 0.5160 | 0.5314 | -0.0018 | 1 | lam 0.4/0.3/0.2/0.2; delta 0.0/0.0/0.1/0.1 |
+| [llm2_rsize_reddit_disagree](https://wandb.ai/BI_finance_project/finance-direction/runs/jnit8unk) | llm6_base | 급등락 경계 ← Reddit 의견 불일치 (mixed + min(bull,bear)) | 0.4472 | 0.4356 | 0.4016 | 0.5136 | 0.4495 | 0.4181 | 0.4770 | 0.5131 | 0.5308 | -0.0018 | 0 | lam 0.4/0.3/0.2/0.2; delta 0.1/0.0/0.1/0.3 |
+| [llm2_gate_uncertain_news](https://wandb.ai/BI_finance_project/finance-direction/runs/vxsi6ud0) | llm6_base | 뉴스 불확실 사건(가능성·의혹·대기) 비율이 tau 넘는 0·4 를 낮춤 | 0.4475 | 0.4356 | 0.4020 | 0.5154 | 0.4501 | 0.4181 | 0.4770 | 0.5170 | 0.5320 | +0.0000 | 0 | lam 0.4/0.3/0.2/0.2; gate_mode off/off/off/off; gate_tau 0.0/0.0/0.0/0.0 |
+| [llm2_gate_uncertain_reddit](https://wandb.ai/BI_finance_project/finance-direction/runs/jthio8tw) | llm6_base | Reddit 작성자 hedging 비율이 tau 넘는 0·4 를 낮춤 | 0.4475 | 0.4356 | 0.4020 | 0.5154 | 0.4501 | 0.4181 | 0.4770 | 0.5170 | 0.5320 | +0.0000 | 0 | lam 0.4/0.3/0.2/0.2; gate_mode off/off/off/off; gate_tau 0.0/0.0/0.0/0.0 |
+| [llm2_rsize_agree_news](https://wandb.ai/BI_finance_project/finance-direction/runs/2a7d42lf) | llm6_base | 급등락 경계 ← 확실도 (뉴스 방향 x 갭 부호) | 0.4482 | 0.4356 | 0.4020 | 0.5148 | 0.4502 | 0.4164 | 0.4768 | 0.5161 | 0.5313 | -0.0006 | 1 | lam 0.4/0.3/0.2/0.2; delta -0.1/0.0/0.0/0.1 |
+| [llm2_rsize_agree_reddit](https://wandb.ai/BI_finance_project/finance-direction/runs/21np3xhh) | llm6_base | 급등락 경계 ← 확실도 (Reddit 방향 x 갭 부호) | 0.4487 | 0.4356 | 0.4017 | 0.5141 | 0.4500 | 0.4161 | 0.4764 | 0.5168 | 0.5291 | -0.0013 | 1 | lam 0.4/0.3/0.2/0.2; delta -0.1/0.0/-0.1/-0.3 |
+| [llm2_rsize_agree_both](https://wandb.ai/BI_finance_project/finance-direction/runs/48rtxyee) | llm6_base | **급등락 경계 ← 확실도 (뉴스·Reddit 평균), 비율판** | 0.4493 | 0.4356 | 0.4056 | 0.5176 | 0.4520 | 0.4160 | 0.4787 | 0.5160 | 0.5376 | +0.0021 | 3 | lam 0.4/0.3/0.2/0.2; delta -0.1/0.0/0.2/0.2 |
+| llm2_rsize_agree_sign | llm6_base | 같은 확실도의 **부호판** (집계 규칙 2개, w5-1 p16-17) | 0.4494 | 0.4356 | 0.4034 | 0.5175 | 0.4515 | 0.4164 | 0.4797 | 0.5158 | 0.5366 | +0.0021 |  | lam 0.4/0.3/0.2/0.2; delta -0.1/0.0/0.1/0.2 |
+| llm2_rsize_agree_neg | llm6_base | 확실도를 하회·하락 의견만으로 | 0.4480 | 0.4356 | 0.4013 | 0.5156 | 0.4501 | 0.4181 | 0.4775 | 0.5170 | 0.5319 | +0.0001 |  | lam 0.4/0.3/0.2/0.2; delta -0.1/-0.1/-0.3/0.1 |
+| [llm2_asym](https://wandb.ai/BI_finance_project/finance-direction/runs/7ylc5uta) | llm6_base | 급상승 경계 b_up 과 급하락 경계 b_down 을 따로 (w2 p25/30) | 0.4229 | 0.4298 | 0.3986 | 0.5192 | 0.4426 | 0.4055 | 0.4908 | 0.5163 | 0.5258 | +0.0038 | 1 | lam 0.4/0.3/0.2/0.2; b_up 0.2646/0.2612/0.2603/0.2564; b_down 0.104/0.1463/0.1466/0.1927 |
+| llm2_agree_asym | llm6_base | 확실도 + 경계 분리 조합 | 0.4241 | 0.4295 | 0.3995 | 0.5149 | 0.4420 | 0.3995 | 0.4861 | 0.5104 | 0.5244 | -0.0005 |  | lam 0.4/0.3/0.2/0.2; delta -0.1/-0.1/0.1/-0.2; b_up 0.2646/0.2612/0.2603/0.2564; b_down 0.104/0.1463/0.1466/0.1927 |
+| [llm2_lgb_all](https://wandb.ai/BI_finance_project/finance-direction/runs/6abxuf0j) | llm6_d0_lgb_aggr | 피처: + 채민 feature_* 전부 (뉴스 26 + Reddit 20) | 0.3450 | 0.3972 | 0.3980 | 0.5002 | 0.4101 | 0.4313 | 0.4677 | 0.4935 | 0.5079 | -0.0152 | 2 | k 3.0/2.0/3.0/3.0; rounds 44/52/60/51 |
+
