@@ -143,3 +143,20 @@ def test_official_variant_reproduces_the_shipped_score():
         for k in range(5):
             v = chance_corrected(y, np.full(len(y), k), w)
             assert np.isnan(v) or abs(v) < 1e-12, (name, k, v)
+
+
+def test_holdout_gap_matches_both_recorded_sources():
+    """The dev side must reproduce the frozen fold scores; the holdout side must only quote."""
+    import json
+    d = json.loads((OUT / 'holdout_gap.json').read_text(encoding='utf-8'))
+    expected = {'fold1': 0.434422, 'fold2': 0.435603, 'fold3': 0.402021, 'fold4': 0.515419}
+    for fold, want in expected.items():
+        assert abs(d['development_fold_scores'][fold] - want) < 1e-6, fold
+    assert abs(d['development_fold_mean_score'] - 0.446866) < 1e-6
+    held = pd.read_csv(ROOT / 'reports/final_study/holdout_metrics.csv')
+    row = held[(held.scenario == 'train40') & (held.group == 'all')].iloc[0]
+    for k in ('score', 'accuracy', 'direction'):
+        assert abs(d['holdout'][k] - float(row[k])) < 1e-12, k
+    # The claim the write-up leans on: the holdout period beat every development fold.
+    assert d['holdout_direction_above_every_dev_fold'] is True
+    assert d['holdout']['direction'] > d['best_dev_fold_direction']
