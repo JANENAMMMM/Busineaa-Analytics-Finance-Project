@@ -1,0 +1,469 @@
+{
+  "taus": [
+    0.0,
+    0.3,
+    0.45,
+    0.55,
+    0.7
+  ],
+  "tau_chosen": {
+    "fold1": {
+      "lgb": 0.7,
+      "wlgb": 0.7
+    },
+    "fold2": {
+      "lgb": 0.55,
+      "wlgb": 0.7
+    },
+    "fold3": {
+      "lgb": 0.55,
+      "wlgb": 0.7
+    },
+    "fold4": {
+      "lgb": 0.55,
+      "wlgb": 0.7
+    }
+  },
+  "B0_mean": 0.446866231540839,
+  "B0_folds": {
+    "fold1": 0.434422,
+    "fold2": 0.435603,
+    "fold3": 0.402021,
+    "fold4": 0.515419
+  },
+  "B0_mean_reference": 0.446866,
+  "B0_mean_difference": 2.3154083900189804e-07,
+  "lgb_aggr_reference": {
+    "fold1": 0.346125,
+    "fold2": 0.420329,
+    "fold3": 0.391994,
+    "fold4": 0.49544
+  },
+  "folds": [
+    {
+      "fold": "fold1",
+      "train_marginal_base_cost": [
+        7.4697,
+        4.065,
+        2.8484,
+        3.8198,
+        6.9793
+      ],
+      "lgb_rounds": 45,
+      "lgb_aggr_k": 3.0,
+      "lgb_tau": 0.7,
+      "lgb_inner_tau_scores": {
+        "0.0": 0.34178255356861054,
+        "0.3": 0.3779716530963328,
+        "0.45": 0.38906652051894014,
+        "0.55": 0.40694292264771015,
+        "0.7": 0.4185975912366464
+      },
+      "wlgb_rounds": 49,
+      "wlgb_aggr_k": 3.0,
+      "wlgb_tau": 0.7,
+      "wlgb_inner_tau_scores": {
+        "0.0": 0.36002289347434385,
+        "0.3": 0.3705245885623576,
+        "0.45": 0.37458088182109367,
+        "0.55": 0.3793598053502669,
+        "0.7": 0.3916477510696447
+      }
+    },
+    {
+      "fold": "fold2",
+      "train_marginal_base_cost": [
+        7.2209,
+        3.8977,
+        2.6824,
+        3.5751,
+        6.5758
+      ],
+      "lgb_rounds": 47,
+      "lgb_aggr_k": 1.5,
+      "lgb_tau": 0.55,
+      "lgb_inner_tau_scores": {
+        "0.0": 0.36112739376283676,
+        "0.3": 0.4129377776224061,
+        "0.45": 0.4278217354701141,
+        "0.55": 0.43311663855508215,
+        "0.7": 0.4280011775891044
+      },
+      "wlgb_rounds": 47,
+      "wlgb_aggr_k": 2.0,
+      "wlgb_tau": 0.7,
+      "wlgb_inner_tau_scores": {
+        "0.0": 0.37357451986224444,
+        "0.3": 0.3953539938077833,
+        "0.45": 0.40863283946453194,
+        "0.55": 0.4115309087458831,
+        "0.7": 0.42242767722456076
+      }
+    },
+    {
+      "fold": "fold3",
+      "train_marginal_base_cost": [
+        7.1111,
+        3.8319,
+        2.6424,
+        3.5426,
+        6.5326
+      ],
+      "lgb_rounds": 70,
+      "lgb_aggr_k": 2.0,
+      "lgb_tau": 0.55,
+      "lgb_inner_tau_scores": {
+        "0.0": 0.3322511341376947,
+        "0.3": 0.3874193734166785,
+        "0.45": 0.4082348659222544,
+        "0.55": 0.42422627264651186,
+        "0.7": 0.4157733398456626
+      },
+      "wlgb_rounds": 58,
+      "wlgb_aggr_k": 2.5,
+      "wlgb_tau": 0.7,
+      "wlgb_inner_tau_scores": {
+        "0.0": 0.3505591022213661,
+        "0.3": 0.3719276975428391,
+        "0.45": 0.38262586163818907,
+        "0.55": 0.39036391977161794,
+        "0.7": 0.39916135086330806
+      }
+    },
+    {
+      "fold": "fold4",
+      "train_marginal_base_cost": [
+        7.2503,
+        3.9175,
+        2.7017,
+        3.6029,
+        6.6211
+      ],
+      "lgb_rounds": 54,
+      "lgb_aggr_k": 2.5,
+      "lgb_tau": 0.55,
+      "lgb_inner_tau_scores": {
+        "0.0": 0.32353428431112347,
+        "0.3": 0.38073584817161477,
+        "0.45": 0.40905072754809796,
+        "0.55": 0.4301034236390005,
+        "0.7": 0.4216927981349192
+      },
+      "wlgb_rounds": 39,
+      "wlgb_aggr_k": 2.0,
+      "wlgb_tau": 0.7,
+      "wlgb_inner_tau_scores": {
+        "0.0": 0.3462828602074742,
+        "0.3": 0.36388030714533176,
+        "0.45": 0.379302719873506,
+        "0.55": 0.3899024257119719,
+        "0.7": 0.40405640752933314
+      }
+    }
+  ],
+  "candidates": [
+    {
+      "kind": "lgb_aggr",
+      "fold_score": {
+        "fold1": 0.346125,
+        "fold2": 0.420329,
+        "fold3": 0.391994,
+        "fold4": 0.49544
+      },
+      "mean_score": 0.41347216759467964,
+      "mean_gain_vs_B0": -0.03339406394615935,
+      "fold_gain": {
+        "fold1": -0.088297,
+        "fold2": -0.015274,
+        "fold3": -0.010027,
+        "fold4": -0.019979
+      },
+      "up_folds": 0,
+      "fold4_gain": -0.01997882845299004,
+      "unseen_gain": -0.03503142105914056,
+      "balanced20_gain": -0.050062564831965,
+      "lower_adjusted": -0.05040711039077916,
+      "bootstrap": {
+        "lower_family_adjusted": -0.05513865036302576,
+        "lo95": -0.05040711039077916,
+        "hi95": -0.01691055660299231,
+        "nonpositive_fraction_descriptive": 1.0
+      },
+      "pred_distribution": {
+        "0": 0.178,
+        "1": 0.2812,
+        "2": 0.1772,
+        "3": 0.2462,
+        "4": 0.1173
+      },
+      "passed": false
+    },
+    {
+      "kind": "lgb_cost",
+      "fold_score": {
+        "fold1": 0.304728,
+        "fold2": 0.314327,
+        "fold3": 0.340664,
+        "fold4": 0.424199
+      },
+      "mean_score": 0.34597948126603506,
+      "mean_gain_vs_B0": -0.10088675027480387,
+      "fold_gain": {
+        "fold1": -0.129694,
+        "fold2": -0.121276,
+        "fold3": -0.061357,
+        "fold4": -0.09122
+      },
+      "up_folds": 0,
+      "fold4_gain": -0.0912199935189435,
+      "unseen_gain": -0.08364385495924026,
+      "balanced20_gain": -0.10555814481523057,
+      "lower_adjusted": -0.12435081475272866,
+      "bootstrap": {
+        "lower_family_adjusted": -0.13191518097677488,
+        "lo95": -0.12435081475272866,
+        "hi95": -0.08039298376078945,
+        "nonpositive_fraction_descriptive": 1.0
+      },
+      "pred_distribution": {
+        "0": 0.0176,
+        "1": 0.1992,
+        "2": 0.6075,
+        "3": 0.1557,
+        "4": 0.0201
+      },
+      "passed": false
+    },
+    {
+      "kind": "lgb_ratio",
+      "fold_score": {
+        "fold1": 0.328041,
+        "fold2": 0.447888,
+        "fold3": 0.411694,
+        "fold4": 0.514604
+      },
+      "mean_score": 0.42555701617577085,
+      "mean_gain_vs_B0": -0.021309215365068107,
+      "fold_gain": {
+        "fold1": -0.106381,
+        "fold2": 0.012286,
+        "fold3": 0.009673,
+        "fold4": -0.000815
+      },
+      "up_folds": 2,
+      "fold4_gain": -0.000814892506399989,
+      "unseen_gain": -0.024524909862380095,
+      "balanced20_gain": -0.02497395899867777,
+      "lower_adjusted": -0.04476741272637983,
+      "bootstrap": {
+        "lower_family_adjusted": -0.05067538556502355,
+        "lo95": -0.04476741272637983,
+        "hi95": -0.001984966782612612,
+        "nonpositive_fraction_descriptive": 0.9835
+      },
+      "pred_distribution": {
+        "0": 0.3315,
+        "1": 0.1856,
+        "2": 0.1621,
+        "3": 0.1777,
+        "4": 0.1432
+      },
+      "passed": false
+    },
+    {
+      "kind": "wlgb_aggr",
+      "fold_score": {
+        "fold1": 0.301733,
+        "fold2": 0.416164,
+        "fold3": 0.380836,
+        "fold4": 0.50411
+      },
+      "mean_score": 0.40071082479772957,
+      "mean_gain_vs_B0": -0.046155406743109334,
+      "fold_gain": {
+        "fold1": -0.132689,
+        "fold2": -0.019439,
+        "fold3": -0.021185,
+        "fold4": -0.011309
+      },
+      "up_folds": 0,
+      "fold4_gain": -0.01130897545084697,
+      "unseen_gain": -0.034907837053100466,
+      "balanced20_gain": -0.046092510323549996,
+      "lower_adjusted": -0.07065663079477238,
+      "bootstrap": {
+        "lower_family_adjusted": -0.07812093841866392,
+        "lo95": -0.07065663079477238,
+        "hi95": -0.0247735061204967,
+        "nonpositive_fraction_descriptive": 1.0
+      },
+      "pred_distribution": {
+        "0": 0.1988,
+        "1": 0.2992,
+        "2": 0.1461,
+        "3": 0.2216,
+        "4": 0.1343
+      },
+      "passed": false
+    },
+    {
+      "kind": "wlgb_cost",
+      "fold_score": {
+        "fold1": 0.262667,
+        "fold2": 0.368749,
+        "fold3": 0.357044,
+        "fold4": 0.449807
+      },
+      "mean_score": 0.3595665948167814,
+      "mean_gain_vs_B0": -0.08729963672405758,
+      "fold_gain": {
+        "fold1": -0.171755,
+        "fold2": -0.066854,
+        "fold3": -0.044977,
+        "fold4": -0.065613
+      },
+      "up_folds": 0,
+      "fold4_gain": -0.06561258301836115,
+      "unseen_gain": -0.07912315354752428,
+      "balanced20_gain": -0.0903726441293704,
+      "lower_adjusted": -0.11166335530064983,
+      "bootstrap": {
+        "lower_family_adjusted": -0.1183068144693569,
+        "lo95": -0.11166335530064983,
+        "hi95": -0.06412802670421859,
+        "nonpositive_fraction_descriptive": 1.0
+      },
+      "pred_distribution": {
+        "0": 0.0318,
+        "1": 0.3133,
+        "2": 0.445,
+        "3": 0.1827,
+        "4": 0.0272
+      },
+      "passed": false
+    },
+    {
+      "kind": "wlgb_ratio",
+      "fold_score": {
+        "fold1": 0.309291,
+        "fold2": 0.424307,
+        "fold3": 0.383493,
+        "fold4": 0.491363
+      },
+      "mean_score": 0.4021136767541137,
+      "mean_gain_vs_B0": -0.044752554786725324,
+      "fold_gain": {
+        "fold1": -0.125131,
+        "fold2": -0.011295,
+        "fold3": -0.018528,
+        "fold4": -0.024056
+      },
+      "up_folds": 0,
+      "fold4_gain": -0.024055773521422075,
+      "unseen_gain": -0.04539815092781077,
+      "balanced20_gain": -0.04739832724118892,
+      "lower_adjusted": -0.07302705238507551,
+      "bootstrap": {
+        "lower_family_adjusted": -0.08181526059085975,
+        "lo95": -0.07302705238507551,
+        "hi95": -0.02133876746676231,
+        "nonpositive_fraction_descriptive": 1.0
+      },
+      "pred_distribution": {
+        "0": 0.165,
+        "1": 0.3169,
+        "2": 0.2559,
+        "3": 0.1717,
+        "4": 0.0905
+      },
+      "passed": false
+    }
+  ],
+  "label_marginal_note": "base_k uses the train label marginal of the 40 training symbols only",
+  "limitation": "repeatedly inspected development data; no holdout labels or scores were read",
+  "input_digests": {
+    "reports/oct10_extension/development.parquet": "e2bcd971a174626a",
+    "cache/b_v1.parquet": "48f8527c7752fd81",
+    "lab/folds.json": "8ba16f8925e4381a"
+  },
+  "label_marginal": [
+    0.067,
+    0.24242,
+    0.33625,
+    0.27508,
+    0.07925
+  ],
+  "diagnostics": [
+    {
+      "kind": "B0",
+      "accuracy": 0.26216666666666666,
+      "opposite_direction_share_moved": 0.2569993722536095,
+      "flat_share": 0.20858333333333334,
+      "pred0_n": 2387,
+      "pred0_precision": 0.1621281943862589,
+      "pred4_n": 2998,
+      "pred4_precision": 0.18345563709139426
+    },
+    {
+      "kind": "lgb_aggr",
+      "accuracy": 0.30233333333333334,
+      "opposite_direction_share_moved": 0.29202762084118017,
+      "flat_share": 0.17725,
+      "pred0_n": 2136,
+      "pred0_precision": 0.19147940074906367,
+      "pred4_n": 1408,
+      "pred4_precision": 0.3174715909090909
+    },
+    {
+      "kind": "lgb_cost",
+      "accuracy": 0.37825,
+      "opposite_direction_share_moved": 0.11688637790332705,
+      "flat_share": 0.6075,
+      "pred0_n": 211,
+      "pred0_precision": 0.4834123222748815,
+      "pred4_n": 241,
+      "pred4_precision": 0.5933609958506224
+    },
+    {
+      "kind": "lgb_ratio",
+      "accuracy": 0.23058333333333333,
+      "opposite_direction_share_moved": 0.29767733835530447,
+      "flat_share": 0.16208333333333333,
+      "pred0_n": 3978,
+      "pred0_precision": 0.10005027652086476,
+      "pred4_n": 1718,
+      "pred4_precision": 0.21362048894062863
+    },
+    {
+      "kind": "wlgb_aggr",
+      "accuracy": 0.2875,
+      "opposite_direction_share_moved": 0.30947897049591966,
+      "flat_share": 0.14608333333333334,
+      "pred0_n": 2386,
+      "pred0_precision": 0.17393126571668063,
+      "pred4_n": 1612,
+      "pred4_precision": 0.29094292803970223
+    },
+    {
+      "kind": "wlgb_cost",
+      "accuracy": 0.3610833333333333,
+      "opposite_direction_share_moved": 0.18794726930320152,
+      "flat_share": 0.445,
+      "pred0_n": 381,
+      "pred0_precision": 0.37270341207349084,
+      "pred4_n": 327,
+      "pred4_precision": 0.5596330275229358
+    },
+    {
+      "kind": "wlgb_ratio",
+      "accuracy": 0.29741666666666666,
+      "opposite_direction_share_moved": 0.2631512868801004,
+      "flat_share": 0.2559166666666667,
+      "pred0_n": 1980,
+      "pred0_precision": 0.16414141414141414,
+      "pred4_n": 1086,
+      "pred4_precision": 0.3305709023941068
+    }
+  ],
+  "reading": "lgb_cost (tau=0) has the best accuracy and the fewest opposite-direction calls but the worst score, because it answers flat on most rows and the score pays nothing for a correct flat. lgb_ratio does the reverse: it beats the same model under the earlier quantile decoding while getting fewer rows right, by making many low-precision crash calls that inflate the chance denominator. Neither is a better forecast than B0."
+}

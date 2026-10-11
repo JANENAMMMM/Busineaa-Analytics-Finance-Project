@@ -102,3 +102,27 @@ def test_b0_reproduces_the_frozen_reference_mean():
 def test_neither_candidate_was_adopted():
     assert json.loads((OUT / 'p1_decision.json').read_text(encoding='utf-8'))['passed'] is False
     assert json.loads((OUT / 't1_decision.json').read_text(encoding='utf-8'))['passed'] is False
+
+
+def test_expected_cost_decoder_is_sane():
+    from scripts.oct12_cost_decode import decode, base_cost
+    import numpy as np
+    # A degenerate probability decodes to its own class; the flat row needs the tie-break,
+    # because row 2 of the score weights is all zeros and every answer costs the same.
+    assert list(decode(np.eye(5), np.zeros(5), 0.0)) == [0, 1, 2, 3, 4]
+    # A larger tau buys more extreme answers, never fewer.
+    rng = np.random.default_rng(0)
+    p = rng.dirichlet(np.ones(5), size=500)
+    base = base_cost(np.array([0] * 7 + [1] * 24 + [2] * 34 + [3] * 27 + [4] * 8))
+    extremes = [int(np.isin(decode(p, base, t), [0, 4]).sum()) for t in [0.0, 0.3, 0.55, 0.7]]
+    assert extremes == sorted(extremes)
+
+
+def test_cost_decode_reproduces_the_earlier_lightgbm_scores():
+    import json
+    d = json.loads((OUT / 'cost_decode_decision.json').read_text(encoding='utf-8'))
+    assert abs(d['B0_mean'] - d['B0_mean_reference']) < 1e-6
+    for fold, expected in d['lgb_aggr_reference'].items():
+        got = [c for c in d['candidates'] if c['kind'] == 'lgb_aggr'][0]['fold_score'][fold]
+        assert abs(got - expected) < 1e-6, (fold, got, expected)
+    assert all(c['passed'] is False for c in d['candidates'])
