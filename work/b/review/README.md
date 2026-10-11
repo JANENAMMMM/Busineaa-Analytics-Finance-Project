@@ -13,3 +13,4 @@
 | [errors/](errors/) | `errors.py` 오답 분석 | 09 |
 | [tweak/](tweak/) | `tweak.py` 오답을 겨냥한 규칙 수정 | 10 |
 | [more/](more/) | `more.py` 규칙 구조 실험 | 11 |
+| [papers/](papers/) | `papers.py` 논문 기반 실험 A·B·C | 13 |
