@@ -49,7 +49,8 @@ def main() -> None:
     assert files, f"no files in artifacts/{store}"
     for src in files:
         copy_file(src, Path("artifacts") / store / src.name)
-    for rel in ("reports/premarket_submission_check.json", "reports/premarket_holdout/result.json"):
+    for rel in ("reports/premarket_submission_check.json", "reports/premarket_holdout/result.json",
+                "reports/premarket_compare/0929_vs_0928.json", "reports/premarket_compare/bootstrap.json"):
         copy_file(ROOT / rel, Path(rel))
     copy_file(ROOT / "output" / "pdf" / "Finance_Final_Presentation.pdf", Path("Presentation.pdf"))
     with zipfile.ZipFile(ZIP, "w", compression=zipfile.ZIP_DEFLATED) as zf:

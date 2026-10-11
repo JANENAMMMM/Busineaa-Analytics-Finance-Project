@@ -1,8 +1,8 @@
 """Fit the submitted premarket rule once, on every public labelled day.
 
-The cutoff was chosen before this refit: 09:28 matched 09:15 nowhere on
-development and was the only one to hold up on the untouched holdout check
-(reports/premarket_holdout/result.json). With the cutoff fixed, the final
+The cutoff was chosen before this refit on one yardstick (reports/premarket_compare/):
+09:29 beat 09:28 on development and holdout and in every symbol group, and 09:28
+had beaten 09:15 and B0 on both (reports/premarket_holdout/result.json). With the cutoff fixed, the final
 constants use all public labels, holdout included, as is usual for a final fit.
 
 Writes artifacts/premarket_rule.json, the only file src/model.py reads, plus a
@@ -27,7 +27,7 @@ import premarket_rule as PM
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--as-of", default="09:28")
+    ap.add_argument("--as-of", default="09:29")
     ap.add_argument("--last-target", default="2026-09-14",
                     help="last target date whose label is used (default: every public label)")
     args = ap.parse_args()
@@ -51,7 +51,7 @@ def main():
             "store_files_used": len(files), "store_sha256": h.hexdigest(),
             "missing_targets_fall_back_to_B0": missing,
             "symbols": "all public symbols in day.symbols",
-            "selection_evidence": "reports/premarket_holdout/result.json"}
+            "selection_evidence": ["reports/premarket_holdout/result.json", "reports/premarket_compare/0929_vs_0928.json"]}
     (ARTIFACTS / "premarket_rule.provenance.json").write_text(json.dumps(prov, indent=2), encoding="utf-8")
     print(json.dumps({"params": params, **prov}, indent=2))
 

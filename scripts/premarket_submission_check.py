@@ -4,7 +4,7 @@
    except model.py and artifacts/, so it cannot import work/b). It must give the
    same labels as B's premarket_rule.predict with the same constants.
 2. With no premarket file at all it must give exactly the B0 labels.
-3. No stored bar may end after the cutoff (t_asof is the bar start).
+3. No stored bar may end after the cutoff as_of (t_asof is the bar start).
 """
 import json
 import shutil
@@ -31,7 +31,8 @@ SAMPLE = 60
 def main():
     model = SM.load_model()
     params = model.params
-    assert model.premarket and params["as_of"] == "09:28", params
+    assert model.premarket and params.get("as_of"), params
+    as_of = params["as_of"]
     prov = json.loads((SM.ARTIFACTS / "premarket_rule.provenance.json").read_text(encoding="utf-8"))
     ds = Dataset()
     days = list(ds.days())
@@ -60,12 +61,13 @@ def main():
         SM.ARTIFACTS = real
         shutil.rmtree(tmp, ignore_errors=True)
 
-    store = PM.store_for("09:28")
+    store = PM.store_for(as_of)
     late, rows = 0, 0
     for p in sorted(store.glob("*.parquet")):
         z = pd.read_parquet(p)
         t = pd.to_datetime(z.t_asof)
-        lim = pd.Timestamp(p.stem) + pd.Timedelta(hours=9, minutes=28)
+        hh, mm = map(int, as_of.split(":"))
+        lim = pd.Timestamp(p.stem) + pd.Timedelta(hours=hh, minutes=mm)
         late += int(((t + pd.Timedelta(minutes=1)) > lim).sum()); rows += len(z)
 
     result = {"equal_to_B_rule": same / n, "rows_compared": n,
@@ -74,14 +76,14 @@ def main():
               "params": params, "provenance": prov}
     assert same == n, "src/model.py disagrees with premarket_rule"
     assert fb_same == fb_n, "fallback does not reproduce B0"
-    assert late == 0, "a stored bar ends after 09:28"
+    assert late == 0, f"a stored bar ends after {as_of}"
 
     folds = load_folds(ds)
     cfg = {"stage": "final_fit_and_submission_check", "as_of": params["as_of"],
            "params": params, "provenance": prov, "folds_hash": tracking.folds_info(folds)["folds_hash"],
            "fit_data": "all public labels, targets 2024-08-14..2026-09-14, all 50 symbols",
            "checks": ["model==B rule", "no file -> B0", "bar end <= as_of"]}
-    tr = tracking.Tracker(name="premarket_0928_final_fit", tags=["premarket", "09:28", "submission", "final_fit"],
+    tr = tracking.Tracker(name=f"premarket_{as_of.replace(':', '')}_final_fit", tags=["premarket", as_of, "submission", "final_fit"],
                           config=cfg, job_type="final_fit")
     if tr.on:
         for k, v in result.items():
