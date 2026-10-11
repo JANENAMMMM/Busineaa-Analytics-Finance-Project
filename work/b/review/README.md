@@ -14,3 +14,4 @@
 | [tweak/](tweak/) | `tweak.py` 오답을 겨냥한 규칙 수정 | 10 |
 | [more/](more/) | `more.py` 규칙 구조 실험 | 11 |
 | [papers/](papers/) | `papers.py` 논문 기반 실험 A·B·C | 13 |
+| [premarket/](premarket/) | `fetch.py` 1분봉 받기, `premarket.py` 09:00 봉 진단, `exp.py` 시점별, `exp_iex.py` IEX, `exp_mkt.py` 시장·거래량, `figs.py` 그림. 후보 규칙은 [../../features/premarket_rule.py](../../features/premarket_rule.py) | 16 |

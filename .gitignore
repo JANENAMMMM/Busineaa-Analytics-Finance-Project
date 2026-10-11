@@ -246,3 +246,8 @@ work/c/artifacts/**/*.parquet
 
 # B 리뷰 스크립트 결과물 (스크립트로 다시 생성)
 work/b/review/*/out/
+
+# Alpaca 키 (제출 채널로만 따로 냄, 레포에 올리지 않음)
+artifacts/alpaca_key.json
+.env
+artifacts/premarket/
