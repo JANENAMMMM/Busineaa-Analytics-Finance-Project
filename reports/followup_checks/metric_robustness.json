@@ -1,0 +1,320 @@
+{
+  "n_candidates": 18,
+  "variants": {
+    "official": {
+      "winner": "P1",
+      "B0_rank": 4,
+      "B0": 0.446866231540839,
+      "best": 0.4485316877331601,
+      "lgb_cost_rank": 18,
+      "lgb_cost": 0.34597948126603506
+    },
+    "flat_credit": {
+      "winner": "P1",
+      "B0_rank": 4,
+      "B0": 0.40320724009771536,
+      "best": 0.4046762215112051,
+      "lgb_cost_rank": 18,
+      "lgb_cost": 0.3434270528107679
+    },
+    "linear": {
+      "winner": "P1",
+      "B0_rank": 8,
+      "B0": 0.3540631860667975,
+      "best": 0.3558854124554609,
+      "lgb_cost_rank": 18,
+      "lgb_cost": 0.23989517218616274
+    },
+    "plain_qwk": {
+      "winner": "lgb_aggr",
+      "B0_rank": 7,
+      "B0": 0.3022995403027635,
+      "best": 0.3041126204511115,
+      "lgb_cost_rank": 13,
+      "lgb_cost": 0.30208372161935104
+    },
+    "extreme_only": {
+      "winner": "P1",
+      "B0_rank": 3,
+      "B0": 0.5316919821585782,
+      "best": 0.5335572423842599,
+      "lgb_cost_rank": 18,
+      "lgb_cost": 0.37821054860975367
+    }
+  },
+  "B0_wins_everywhere": false,
+  "rule_family_band": {
+    "official": {
+      "min": 0.44632299241449636,
+      "max": 0.4485316877331601,
+      "spread": 0.002208695318663745
+    },
+    "flat_credit": {
+      "min": 0.4027159586414423,
+      "max": 0.4046762215112051,
+      "spread": 0.0019602628697628077
+    },
+    "linear": {
+      "min": 0.3535338885060689,
+      "max": 0.3558854124554609,
+      "spread": 0.002351523949391976
+    },
+    "plain_qwk": {
+      "min": 0.30202760390774963,
+      "max": 0.30347190784800326,
+      "spread": 0.0014443039402536328
+    },
+    "extreme_only": {
+      "min": 0.5308177969133689,
+      "max": 0.5335572423842599,
+      "spread": 0.002739445470891
+    }
+  },
+  "rule_family_members": [
+    "P1",
+    "L_R",
+    "L_NR",
+    "B0",
+    "V_N",
+    "S_B0",
+    "C_N",
+    "L_N",
+    "C_R",
+    "V_R",
+    "V_NR",
+    "C_NR"
+  ],
+  "B0_vs_best_tree": {
+    "official": {
+      "B0": 0.446866231540839,
+      "best_tree": 0.42555701617577085,
+      "B0_minus_best_tree": 0.021309215365068135
+    },
+    "flat_credit": {
+      "B0": 0.40320724009771536,
+      "best_tree": 0.387286102010183,
+      "B0_minus_best_tree": 0.01592113808753237
+    },
+    "linear": {
+      "B0": 0.3540631860667975,
+      "best_tree": 0.3449986891219198,
+      "B0_minus_best_tree": 0.009064496944877709
+    },
+    "plain_qwk": {
+      "B0": 0.3022995403027635,
+      "best_tree": 0.3041126204511115,
+      "B0_minus_best_tree": -0.0018130801483479675
+    },
+    "extreme_only": {
+      "B0": 0.5316919821585782,
+      "best_tree": 0.5240125320263475,
+      "B0_minus_best_tree": 0.007679450132230703
+    }
+  },
+  "tree_members": [
+    "lgb_ratio",
+    "lgb_aggr",
+    "wlgb_ratio",
+    "wlgb_aggr",
+    "wlgb_cost",
+    "lgb_cost"
+  ],
+  "weight_matrices": {
+    "official": [
+      [
+        0,
+        4,
+        16,
+        36,
+        64
+      ],
+      [
+        1,
+        0,
+        1,
+        4,
+        9
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        9,
+        4,
+        1,
+        0,
+        1
+      ],
+      [
+        64,
+        36,
+        16,
+        4,
+        0
+      ]
+    ],
+    "flat_credit": [
+      [
+        0,
+        4,
+        16,
+        36,
+        64
+      ],
+      [
+        1,
+        0,
+        1,
+        4,
+        9
+      ],
+      [
+        4,
+        1,
+        0,
+        1,
+        4
+      ],
+      [
+        9,
+        4,
+        1,
+        0,
+        1
+      ],
+      [
+        64,
+        36,
+        16,
+        4,
+        0
+      ]
+    ],
+    "linear": [
+      [
+        0,
+        4,
+        8,
+        12,
+        16
+      ],
+      [
+        1,
+        0,
+        1,
+        2,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        3,
+        2,
+        1,
+        0,
+        1
+      ],
+      [
+        16,
+        12,
+        8,
+        4,
+        0
+      ]
+    ],
+    "plain_qwk": [
+      [
+        0,
+        1,
+        4,
+        9,
+        16
+      ],
+      [
+        1,
+        0,
+        1,
+        4,
+        9
+      ],
+      [
+        4,
+        1,
+        0,
+        1,
+        4
+      ],
+      [
+        9,
+        4,
+        1,
+        0,
+        1
+      ],
+      [
+        16,
+        9,
+        4,
+        1,
+        0
+      ]
+    ],
+    "extreme_only": [
+      [
+        0,
+        1,
+        4,
+        9,
+        16
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        16,
+        9,
+        4,
+        1,
+        0
+      ]
+    ]
+  },
+  "protocol": {
+    "form": "every variant keeps the chance-corrected shape 1 - sum(W*O)/sum(W*E), so 0 is chance for each",
+    "official": "W[i,j] = (i-j)^2 * |i-2|^2  (src/data.py WEIGHT, the graded metric)",
+    "flat_credit": "same as official but true-flat rows get (i-j)^2 instead of 0, so correctly answering flat earns credit",
+    "linear": "W[i,j] = |i-j| * |i-2|^2, so being far wrong costs less steeply",
+    "plain_qwk": "W[i,j] = (i-j)^2, no extra weight on extreme truth rows",
+    "extreme_only": "W[i,j] = (i-j)^2 where |i-2| == 2, else 0, so only crash and spike days count"
+  },
+  "limitation": "The non-B0 candidates had their internal knobs (scale, delta, tau, thresholds) chosen under the official score, so this measures how already-frozen predictions rank under a different ruler, not how each model would look if it had been tuned for that ruler.",
+  "decision_rule": "This is descriptive. Nothing is adopted whatever the result: the holdout was opened on 2026-10-09, B0 won, and the submission is frozen. A variant where B0 loses is reported as a caveat on the conclusion, never as grounds to change the submission.",
+  "reading": "Two things matter more than the ranks. First, every rule-family candidate sits inside a band narrower than 0.002 under each ruler, so B0 moving between rank 3 and rank 8 is noise, not a change of winner - and B0 was never the development mean winner anyway; the pre-registered criteria, not the mean, are what kept it. Second, B0 beats the best tree model by 0.021 under the official score but by only 0.002 under plain_qwk, so the gap rule owes its edge to the extreme-truth weighting in the official metric rather than to being a better forecast - lgb_cost is far more accurate (0.378 against 0.262) under any ruler."
+}

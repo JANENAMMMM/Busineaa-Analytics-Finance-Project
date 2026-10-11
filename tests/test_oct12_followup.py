@@ -126,3 +126,20 @@ def test_cost_decode_reproduces_the_earlier_lightgbm_scores():
         got = [c for c in d['candidates'] if c['kind'] == 'lgb_aggr'][0]['fold_score'][fold]
         assert abs(got - expected) < 1e-6, (fold, got, expected)
     assert all(c['passed'] is False for c in d['candidates'])
+
+
+def test_official_variant_reproduces_the_shipped_score():
+    """The 'official' ruler must be the real one, or the whole comparison is off."""
+    from scripts.oct12_metric_robustness import chance_corrected, weights
+    from src import score
+    import numpy as np
+    pred = pd.read_parquet(OUT / 'p1_predictions.parquet')
+    W = weights()['official']
+    for (fold, kind), g in pred.groupby(['fold', 'kind']):
+        assert abs(chance_corrected(g.label, g.pred, W) - score(g.label, g.pred)['score']) < 1e-12
+    # Every ruler keeps 0 as chance: answering one class for everything scores exactly 0.
+    y = pred[pred.kind == 'B0'].label.to_numpy(int)
+    for name, w in weights().items():
+        for k in range(5):
+            v = chance_corrected(y, np.full(len(y), k), w)
+            assert np.isnan(v) or abs(v) < 1e-12, (name, k, v)

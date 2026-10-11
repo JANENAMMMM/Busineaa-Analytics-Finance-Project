@@ -1,0 +1,27 @@
+{
+  "question": "Is the choice of B0 an artefact of the official score's weight matrix, or does B0 stay the winner under other reasonable rulers?",
+  "fixed_before_running": true,
+  "scope": "development folds only, scenario train40, saved predictions only. No holdout labels or scores. No API calls. No model is refit.",
+  "candidates": {
+    "source_files": [
+      "reports/oct10_extension/predictions.parquet",
+      "reports/followup_checks/p1_predictions.parquet",
+      "reports/followup_checks/cost_decode_predictions.parquet"
+    ],
+    "note": "B0 appears in every file and must agree row for row; the run asserts that."
+  },
+  "metric_variants": {
+    "form": "every variant keeps the chance-corrected shape 1 - sum(W*O)/sum(W*E), so 0 is chance for each",
+    "official": "W[i,j] = (i-j)^2 * |i-2|^2  (src/data.py WEIGHT, the graded metric)",
+    "flat_credit": "same as official but true-flat rows get (i-j)^2 instead of 0, so correctly answering flat earns credit",
+    "linear": "W[i,j] = |i-j| * |i-2|^2, so being far wrong costs less steeply",
+    "plain_qwk": "W[i,j] = (i-j)^2, no extra weight on extreme truth rows",
+    "extreme_only": "W[i,j] = (i-j)^2 where |i-2| == 2, else 0, so only crash and spike days count"
+  },
+  "also_reported": ["accuracy", "direction (moved rows only)"],
+  "primary_outcome": "the rank of B0 among all candidates under each variant",
+  "secondary_outcome": "where lgb_cost lands, since it is the best forecast by accuracy and direction but the worst under the official score",
+  "decision_rule": "This is descriptive. Nothing is adopted whatever the result: the holdout was opened on 2026-10-09, B0 won, and the submission is frozen. A variant where B0 loses is reported as a caveat on the conclusion, never as grounds to change the submission.",
+  "limitation_stated_in_advance": "The non-B0 candidates had their internal knobs (scale, delta, tau, thresholds) chosen under the official score, so this measures how already-frozen predictions rank under a different ruler, not how each model would look if it had been tuned for that ruler.",
+  "seed": 2026
+}
