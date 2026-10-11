@@ -1,0 +1,124 @@
+{
+  "before": {
+    "novelty_screen": [
+      {
+        "group": "all_news",
+        "rows": 8449,
+        "moved_nonzero": 5657,
+        "hits": 2954,
+        "hit_rate": 0.5221849036591834,
+        "p_one_sided": 0.0004430697064293949,
+        "disagree_n": 2591,
+        "disagree_hits": 910,
+        "disagree_hit_rate": 0.3512157468159012
+      },
+      {
+        "group": "high_novelty",
+        "rows": 1680,
+        "moved_nonzero": 1104,
+        "hits": 552,
+        "hit_rate": 0.5,
+        "p_one_sided": 0.5120040330775043,
+        "disagree_n": 530,
+        "disagree_hits": 186,
+        "disagree_hit_rate": 0.35094339622641507
+      },
+      {
+        "group": "other_news",
+        "rows": 6769,
+        "moved_nonzero": 4553,
+        "hits": 2402,
+        "hit_rate": 0.527564243356029,
+        "p_one_sided": 0.0001053251255838223,
+        "disagree_n": 2061,
+        "disagree_hits": 724,
+        "disagree_hit_rate": 0.3512857836001941
+      }
+    ],
+    "novelty_passed": false
+  },
+  "after": {
+    "novelty": {
+      "novelty_code_counts": {
+        "not_computed_out_of_screen_scope": 12600,
+        "computed_positive": 8400,
+        "no_articles": 1401,
+        "no_prior_comparison": 49
+      },
+      "gap_code_counts_in_scope": {
+        "usable": 9844,
+        "gap_exact_zero": 6
+      },
+      "fold1_train_threshold": 0.7893316667188195,
+      "rescreen": [
+        {
+          "group": "all_news",
+          "rows": 8449,
+          "moved_nonzero": 5657,
+          "hits": 2954,
+          "hit_rate": 0.5221849036591834,
+          "p_one_sided": 0.0004430697064293949,
+          "disagree_n_before": 2591,
+          "disagree_hit_rate_before": 0.3512157468159012,
+          "disagree_n_after": 2588,
+          "disagree_hit_rate_after": 0.3516228748068006,
+          "dropped_gap_missing_or_zero": 3
+        },
+        {
+          "group": "high_novelty",
+          "rows": 1680,
+          "moved_nonzero": 1104,
+          "hits": 552,
+          "hit_rate": 0.5,
+          "p_one_sided": 0.5120040330775043,
+          "disagree_n_before": 530,
+          "disagree_hit_rate_before": 0.35094339622641507,
+          "disagree_n_after": 529,
+          "disagree_hit_rate_after": 0.3516068052930057,
+          "dropped_gap_missing_or_zero": 1
+        },
+        {
+          "group": "other_news",
+          "rows": 6769,
+          "moved_nonzero": 4553,
+          "hits": 2402,
+          "hit_rate": 0.527564243356029,
+          "p_one_sided": 0.0001053251255838223,
+          "disagree_n_before": 2061,
+          "disagree_hit_rate_before": 0.3512857836001941,
+          "disagree_n_after": 2059,
+          "disagree_hit_rate_after": 0.3516270033997086,
+          "dropped_gap_missing_or_zero": 2
+        }
+      ],
+      "unit_note": "novelty = 1 - max TF-IDF cosine to the previous 20 symbol-day documents; the protocol fixed this expression, and the run kept it. Values are a similarity complement in [0,1], not a count."
+    },
+    "text_stages": {
+      "news": {
+        "requested_to_api": 4740.0,
+        "answered_by_api": 4740.0,
+        "validated": 4699.0,
+        "no_response_or_unprocessed": 0.0,
+        "answered_but_failed_validation": 41.0,
+        "note": "answered counts rows the API actually returned (valid + excluded files). Requests with no stored row are unprocessed or errored and are not counted as responses.",
+        "raw_symbol_links": 2097118.0,
+        "after_expectation_filter": 4740.0,
+        "pre_filter_candidate": "unavailable: the handoff stores only the post-filter count"
+      },
+      "reddit": {
+        "requested_to_api": 7553.0,
+        "answered_by_api": 7553.0,
+        "validated": 7517.0,
+        "no_response_or_unprocessed": 0.0,
+        "answered_but_failed_validation": 36.0,
+        "note": "answered counts rows the API actually returned (valid + excluded files). Requests with no stored row are unprocessed or errored and are not counted as responses."
+      },
+      "news_relevance": {
+        "symbol_days_sent": 18802,
+        "symbol_days_judged_relevant": 13966,
+        "relevant_share": 0.7427933198595894,
+        "note": "a symbol-day linked by the raw feed is not necessarily company-relevant, so a drop from the raw link count is not by itself a lost useful article."
+      }
+    }
+  }
+}

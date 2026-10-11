@@ -1,0 +1,65 @@
+{
+  "gate": {
+    "min_moved_with_direction": 100,
+    "min_disagree": 50,
+    "hit_min": 0.58,
+    "one_sided_p_lt": 0.01,
+    "disagree_hit_gt": 0.5
+  },
+  "min_prior_days": 20,
+  "high_quantile": 0.8,
+  "definition": "novelty threshold is the 80% quantile of the same symbol's strictly earlier novelty; fewer than 20 prior observed days means the day is held out of the decision",
+  "screen": [
+    {
+      "group": "high_novelty",
+      "rows": 1590,
+      "moved_with_direction": 602,
+      "hits": 310,
+      "hit_rate": 0.5149501661129569,
+      "p_one_sided": 0.244211832580964,
+      "gap_hit_rate": 0.686046511627907,
+      "disagree_n": 287,
+      "disagree_hit_rate": 0.3205574912891986
+    },
+    {
+      "group": "not_high_novelty",
+      "rows": 4340,
+      "moved_with_direction": 1950,
+      "hits": 1033,
+      "hit_rate": 0.5297435897435897,
+      "p_one_sided": 0.004595302740735894,
+      "gap_hit_rate": 0.6748717948717948,
+      "disagree_n": 873,
+      "disagree_hit_rate": 0.33791523482245134
+    },
+    {
+      "group": "held_insufficient_history",
+      "rows": 700,
+      "moved_with_direction": 274,
+      "hits": 136,
+      "hit_rate": 0.49635036496350365,
+      "p_one_sided": 0.5718880429684992,
+      "gap_hit_rate": 0.6861313868613139,
+      "disagree_n": 130,
+      "disagree_hit_rate": 0.3
+    },
+    {
+      "group": "all_with_novelty",
+      "rows": 6630,
+      "moved_with_direction": 2826,
+      "hits": 1479,
+      "hit_rate": 0.5233545647558386,
+      "p_one_sided": 0.006857903962426005,
+      "gap_hit_rate": 0.678343949044586,
+      "disagree_n": 1290,
+      "disagree_hit_rate": 0.3302325581395349
+    }
+  ],
+  "passed": false,
+  "failed_criteria": [
+    "hit_min",
+    "one_sided_p_lt",
+    "disagree_hit_gt"
+  ],
+  "four_fold_run": false
+}
