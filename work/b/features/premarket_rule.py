@@ -245,16 +245,31 @@ def main(argv):
     ap.add_argument("cmd", choices=["fetch"])
     ap.add_argument("--since")
     ap.add_argument("--until")
+    ap.add_argument("--data", help="기준일 목록을 읽을 교수님 데이터 폴더 (기본 dataset/)")
+    ap.add_argument("--target-date", action="append", help="새 대상일 YYYY-MM-DD (반복 가능)")
+    ap.add_argument("--symbols", help="새 대상일의 실제 티커, 쉼표로 구분")
     ap.add_argument("--as-of", default=AS_OF, help="몇 시까지 끝난 봉을 쓸지 (기본 09:15, 09:29 까지)")
     ap.add_argument("--store", default=None, help="기본: as_of 별 폴더")
     a = ap.parse_args(argv)
     store = a.store or str(store_for(a.as_of))
-    sys.path.insert(0, str(ROOT))
-    from src import Dataset
-    ds = Dataset()
-    days = list(ds.days(since=a.since, until=a.until))
-    targets = [d.target for d in days]
-    syms = sorted(set(ds.symbols))
+    if a.target_date:
+        if not a.symbols:
+            ap.error("--target-date에는 --symbols가 필요합니다")
+        targets = sorted({pd.Timestamp(d).normalize() for d in a.target_date})
+        syms = sorted({s.strip() for s in a.symbols.split(",") if s.strip()})
+        if not syms:
+            ap.error("--symbols에 실제 티커를 지정하세요")
+    else:
+        if a.symbols:
+            ap.error("--symbols는 --target-date와 함께 사용하세요")
+        sys.path.insert(0, str(ROOT))
+        from src import Dataset
+        ds = Dataset(a.data)
+        days = list(ds.days(since=a.since, until=a.until))
+        targets = [d.target for d in days]
+        syms = sorted(set(ds.symbols))
+    if not targets:
+        ap.error("수집할 대상일이 없습니다. 날짜 범위를 확인하세요")
     print(f"대상일 {len(targets)}개 ({min(targets).date()} ~ {max(targets).date()}), 종목 {len(syms)}개, as_of {_tag(a.as_of)} → {store}")
     fetch(targets, syms, store, as_of=a.as_of)
 
