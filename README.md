@@ -1,115 +1,374 @@
-# Business_p1
+# Business_p1 — 다음 거래일 주가 방향 예측
 
-Business Analytics Finance Project — 다음 거래일 방향 예측. 과제 설명은 [docs/project_overview.md](docs/project_overview.md),
-교수님 원본 README 는 [docs/course_README.md](docs/course_README.md).
-EDA 결과는 [팀 통합본](docs/worklog/2026-10-02_EDA_팀_통합본.md)과 [재은 EDA](docs/worklog/2026-10-01_EDA_금융데이터_탐색.md), 코드는 [eda/](eda/README.md).
-금융·통계 용어가 낯설면 [docs/glossary.md](docs/glossary.md), 그림으로 보려면 [docs/explainer/](docs/explainer/README.md).
+대상일 **09:30 개장 직전까지 이용 가능한 정보**만 사용하여, 전일 종가 대비 대상일 종가의 변화를 5등급으로 예측합니다.
 
-## 시작
+- `0`: 급하락 (`< -2.5%`)
+- `1`: 하락 (`-2.5% ~ -0.6%`)
+- `2`: 보합 (`-0.6% ~ +0.6%`)
+- `3`: 상승 (`+0.6% ~ +2.5%`)
+- `4`: 급상승 (`> +2.5%`)
+
+최종 제출 모델은 **대상일 09:29까지 확정된 프리마켓 가격을 사용하는 `gap_z` 규칙**입니다.
+09:29 프리마켓 데이터가 없거나 해당 종목의 값을 사용할 수 없는 경우에는 **B0 규칙으로 자동 fallback**합니다.
+
+> 평가 시 추가 학습은 수행하지 않습니다. 제출된 학습 결과와 고정 파라미터만 사용하며,
+> 테스트셋에는 예측에 필요한 전처리와 시점별 피처 계산만 수행합니다.
+
+---
+
+## 1. 채점용 빠른 실행 순서
+
+프로젝트 루트(`main.py`가 있는 폴더)에서 아래 순서로 실행합니다.
+
+### 1-1. 환경 설치
 
 ```bash
-uv sync
-uv run python main.py check --split 2026-06-01    # 형식 검사
-uv run pytest -q                                  # 채점 함수·누수 검사 테스트
+uv sync --locked
 ```
 
-`dataset/` 은 공유 드라이브의 zip 을 저장소 루트에 풀어서 씀 (git 에는 안 올림).
+`uv`가 설치되어 있지 않은 경우:
 
-| zip | 기준일 | 용도 |
+**Windows PowerShell**
+
+```powershell
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+**macOS / Linux**
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+의존성은 `pyproject.toml`에, 실제 설치 버전은 `uv.lock`에 고정되어 있습니다.
+평가를 위해 별도의 `pip install`을 수행할 필요가 없습니다.
+
+### 1-2. 교수님 제공 데이터 배치
+
+교수님 제공 데이터셋을 프로젝트 루트의 `dataset/`에 둡니다.
+
+```text
+project_root/
+├─ main.py
+├─ src/
+├─ artifacts/
+├─ dataset/
+│  ├─ daily.parquet
+│  ├─ price.parquet
+│  └─ ...
+├─ pyproject.toml
+└─ uv.lock
+```
+
+압축 해제 후 `dataset/dataset/`처럼 폴더가 한 번 더 중첩되지 않았는지 확인합니다.
+
+### 1-3. Alpaca API 키 확인 및 `.env` 준비
+
+최종 모델은 Alpaca에서 사전에 수집해 저장한 **대상일 09:29까지의 프리마켓 축약 데이터**를 사용합니다.
+수집 단계와 예측 단계를 분리하며, `Model.predict()` 실행 중에는 외부 API를 호출하지 않습니다.
+
+제출 ZIP에는 채점용 Alpaca 키가 들어 있는 **`.env` 파일을 함께 제공합니다.**
+프로젝트 루트의 `.env`는 아래 형식입니다.
+
+```dotenv
+APCA_API_KEY_ID=발급받은_Key_ID
+APCA_API_SECRET_KEY=발급받은_Secret
+```
+
+따라서 제출본을 그대로 사용하는 경우 별도의 키 발급 없이 `.env`에 포함된 키를 사용할 수 있습니다.
+제출 코드가 `.env`를 자동으로 읽지 않는 환경에서는 아래의 **환경변수를 직접 설정하는 대체 방법**을 사용하면 됩니다.
+키가 만료·폐기되었거나 별도 키로 재현하려는 경우 아래 절차로 새 키를 발급할 수 있습니다.
+
+#### Alpaca API 키 발급 방법
+
+1. [Alpaca Dashboard](https://app.alpaca.markets/)에서 계정을 만들거나 기존 계정으로 로그인합니다.
+2. Alpaca Dashboard에서 **Paper Trading** 계정으로 전환합니다.
+3. Dashboard의 **API Keys** 영역으로 이동합니다.
+4. **Generate New Key**를 눌러 API Key와 Secret Key를 생성합니다.
+5. 생성 직후 두 값을 복사하여 프로젝트 루트의 `.env`에 위 형식으로 입력합니다.
+6. Secret Key는 생성 시 한 번만 표시될 수 있으므로 분실했다면 기존 키를 재생성해야 합니다.
+
+Paper Trading용 키와 Live Trading용 키는 서로 다르므로, 본 프로젝트에서는 **Paper Trading 환경에서 발급한 키**를 사용합니다.
+프리마켓 수집에는 인터넷 연결이 필요하며, 데이터 시점과 계정의 Market Data 권한에 따라 접근 가능한 실시간 시세 범위가 달라질 수 있습니다.
+
+> `.env`에는 실제 Secret이 포함되어 있으므로 공개 GitHub 저장소에는 커밋하지 마십시오. 제출용 ZIP에만 포함하고, 채점이 끝난 뒤에는 해당 키를 폐기 또는 재발급하는 것을 권장합니다.
+
+#### 환경변수를 직접 설정하는 대체 방법
+
+`.env` 대신 운영체제 환경변수를 사용할 수도 있습니다.
+
+**Windows PowerShell**
+
+```powershell
+$env:APCA_API_KEY_ID = "발급받은_Key_ID"
+$env:APCA_API_SECRET_KEY = "발급받은_Secret"
+```
+
+**macOS / Linux**
+
+```bash
+export APCA_API_KEY_ID="발급받은_Key_ID"
+export APCA_API_SECRET_KEY="발급받은_Secret"
+```
+
+### 1-4. 09:29 프리마켓 데이터 준비
+
+이미 평가 대상일의 `artifacts/premarket_0929/` 파일이 준비되어 있다면 이 단계는 건너뜁니다.
+새로 수집해야 하는 경우 Alpaca API 키와 네트워크 연결이 필요합니다.
+
+최종 제출 코드에서 09:29 수집은 다음과 같이 실행합니다.
+
+```bash
+uv run python work/b/features/premarket_rule.py fetch \
+  --since <평가에 필요한 첫 기준일> \
+  --until <마지막 기준일 다음 경계> \
+  --as-of 09:29
+```
+
+예시:
+
+```bash
+uv run python work/b/features/premarket_rule.py fetch \
+  --since 2024-08-13 \
+  --until 2026-05-29 \
+  --as-of 09:29
+```
+
+- 날짜 인자는 **기준일** 기준입니다.
+- `--until`은 제외 경계이므로, 기준일 2026-05-28까지 포함하려면 `2026-05-29`를 사용합니다.
+- 09:29 데이터는 `artifacts/premarket_0929/`에 저장합니다.
+- API 키는 소스코드나 README 본문에 직접 적지 않고, 제출 ZIP의 루트 `.env`에만 저장합니다.
+- 프리마켓 원본 1분봉 전체를 예측 중 다시 조회하지 않습니다.
+- 해당 날짜/종목의 분봉이 없거나 수집에 실패하면 예측은 중단되지 않고 B0로 fallback합니다.
+
+> **주의:** 최종 발표 모델은 09:29 규칙입니다. 제출 ZIP에는 `--as-of 09:29`를 지원하는 최종 수집 코드가 포함되어 있어야 합니다.
+
+### 1-5. 제출 모델 로드 확인
+
+```bash
+uv run python -c "from src import load_model; print(type(load_model()).__name__)"
+```
+
+정상이면 `Model`이 출력됩니다.
+
+### 1-6. 공통 채점 코드 형식 검사
+
+```bash
+uv run python main.py check --data dataset --split 2026-06-01
+```
+
+`check`는 출력 형식과 실행 가능 여부를 확인하기 위한 단계이며 **재학습하지 않습니다**.
+
+### 1-7. 예측 실행
+
+하루 예측 예시:
+
+```bash
+uv run python main.py predict --data dataset --date 2026-09-10 --out predictions.csv
+```
+
+구간 평가 예시:
+
+```bash
+uv run python main.py eval --data dataset --split 2026-06-01 --out evaluation.csv
+```
+
+- `--date`는 **기준일**이며 그 다음 거래일을 예측합니다.
+- `--split`은 공통 코드의 평가 구간 경계입니다.
+- 출력은 `symbol`, `label` 두 열이며 `label`은 `0~4` 정수입니다.
+- 예측 시 W&B 로그인, LLM 호출, 모델 재학습은 필요하지 않습니다.
+
+---
+
+## 2. 제출 모델 인터페이스
+
+공통 채점 코드가 호출하는 핵심 인터페이스는 다음 두 가지입니다.
+
+```python
+load_model()
+Model.predict(day)
+```
+
+채점 시 공통 `src/` 파일은 교수님 코드로 교체될 수 있으므로, 최종 예측에 필요한 로직은
+**`src/model.py`와 제출된 `artifacts/`만으로 동작하도록 구성**합니다.
+
+예측 결과는 종목당 한 행이며 아래 두 열을 반환합니다.
+
+```text
+symbol, label
+```
+
+`label`은 반드시 `0`, `1`, `2`, `3`, `4` 중 하나의 정수입니다.
+
+---
+
+## 3. 최종 모델
+
+### 3-1. 09:29 `gap_z` 규칙
+
+최종 모델은 전일 종가와 대상일 09:29까지 확정된 프리마켓 가격의 갭을 최근 변동성으로 보정합니다.
+
+```text
+gap   = (09:29 프리마켓 가격 / 전일 종가) - 1
+gap_z = gap / vol20
+score = gap_z
+```
+
+`vol20`은 해당 기준일까지 관측 가능한 최근 20거래일 수익률로 계산합니다.
+
+최종 제출 파라미터는 다음과 같이 **학습이 끝난 상태로 고정**되어 있습니다.
+
+| 파라미터 | 값 |
+|---|---:|
+| `lambda` | `0` |
+| `a` | `0.07607` |
+| `b` | `0.25106` |
+
+예측 등급은 `-b`, `-a`, `a`, `b`를 경계로 나눕니다.
+
+```text
+score < -b        -> 0 (급하락)
+-b <= score < -a  -> 1 (하락)
+-a <= score <= a  -> 2 (보합)
+a < score <= b    -> 3 (상승)
+score > b         -> 4 (급상승)
+```
+
+평가 시 `lambda`, `a`, `b`를 다시 탐색하거나 평가 정답을 이용해 조정하지 않습니다.
+
+### 3-2. B0 fallback
+
+09:29 분봉 파일이 없거나, 해당 종목이 없거나, 분봉 값을 정상적으로 사용할 수 없는 경우에는
+기존 시간외 갭 기반 **B0 모델로 fallback**합니다.
+
+B0에 필요한 학습 결과 역시 `artifacts/`에 저장된 값을 그대로 사용하며 평가 중 재학습하지 않습니다.
+
+---
+
+## 4. 평가 전에 수행되는 전처리와 학습값 구분
+
+과제 지침에 따라 **학습셋에서 계산해 고정해야 하는 값**과
+**평가 데이터 자체에 동일하게 적용할 수 있는 처리**를 명확히 구분합니다.
+
+### 4-1. 학습셋에서 계산한 뒤 평가셋에 그대로 적용하는 값
+
+| 항목 | 학습 시 | 평가 시 |
 |---|---|---|
-| `dataset_train_until_2026-02-12.zip` | 2024-08-13 ~ 2026-02-12 (377일) | EDA. fold4 의 train 과 같음 |
-| `dataset_dev_until_2026-05-29.zip` | 2024-08-13 ~ 2026-05-28 (449일) | 피처 만들고 폴드로 검증할 때 |
+| `lambda`, `a`, `b` | 개발 학습/검증 구간에서 확정 | 제출된 고정값 사용. 재학습/재탐색 없음 |
+| B0 fallback 파라미터 | 학습 구간에서 계산 | `artifacts/`에 저장된 값 그대로 사용 |
+| 모델 선택 | 개발 4폴드에서 완료 | 평가 구간에서는 모델 변경 없음 |
 
-홀드아웃(2026-06-01 이후)은 공유하지 않음. 모델이 다 정해진 뒤 한 번만 채점함.
+즉, 평가 데이터의 정답 분포나 평가셋 전체 통계량을 이용하여 임계값을 다시 맞추지 않습니다.
 
-## 폴드
+### 4-2. 평가셋에 그대로 적용하는 처리
 
-[lab/folds.json](lab/folds.json) 하나를 모두 같이 씀. 날짜를 코드에 따로 적지 말 것.
+다음 처리는 학습 분포에서 별도 통계량을 fit하는 과정이 아니라, 각 예측 시점에 사용할 수 있는 정보만으로
+동일한 규칙을 적용하는 **테스트 시점 전처리/피처 계산**입니다.
 
-| | train (기준일) | val (기준일) |
-|---|---|---|
-| fold1 | 2024-08-13 ~ 2025-05-27 | 2025-06-13 ~ 2025-09-09 |
-| fold2 | 2024-08-13 ~ 2025-08-21 | 2025-09-10 ~ 2025-12-03 |
-| fold3 | 2024-08-13 ~ 2025-11-14 | 2025-12-04 ~ 2026-03-03 |
-| fold4 | 2024-08-13 ~ 2026-02-12 | 2026-03-04 ~ 2026-05-28 |
-| holdout | 2024-08-13 ~ 2026-05-11 | 2026-05-29 ~ 2026-09-11 |
+| 처리 | 평가 시 동작 |
+|---|---|
+| 09:29 프리마켓 축약 | 해당 대상일의 09:29까지 끝난 분봉만 사용해 종목별 가격을 저장 |
+| `gap` 계산 | 해당 행의 09:29 가격과 전일 종가로 계산 |
+| `vol20` | 해당 기준일까지 이미 관측된 과거 거래일 수익률만 이용해 causal rolling 계산 |
+| `gap_z` | `gap / vol20`을 종목별로 계산 |
+| 결측 처리 / fallback | 해당 날짜·종목의 분봉을 사용할 수 없으면 B0 사용 |
+| 5등급 변환 | 학습에서 고정한 `a`, `b`를 그대로 적용 |
 
-- train 과 val 사이에 12거래일을 비움. 실제로도 데이터 마지막 정답(9/14)과 평가 시작(10/1) 사이가 12거래일임
-- 경계는 예측 대상일(target) 기준으로 셈. 정답이 target 16:00 에 확정되기 때문
-- 평가 종목 절반이 처음 보는 종목이라, 10개(`unseen_symbols`)는 학습에서 빼고 val 점수를 따로 봄
+`vol20`은 여러 과거 행을 사용하지만 **평가셋 전체의 평균/표준편차를 계산해 스케일링하는 과정이 아닙니다.**
+각 예측일마다 그 시점까지 이미 알려진 과거 가격만 사용하는 시계열 피처이며, 미래 행이나 대상일 종가를 사용하지 않습니다.
 
-```python
-from src import Dataset
-from lab.folds import load_folds
-from lab.cv import run_cv
+---
 
-def fit(train_days, exclude):      # exclude = 학습에서 뺄 종목
-    ...
-    return model                   # predict(day) 만 있으면 됨
+## 5. 시점 제한 및 데이터 누수 방지
 
-res = run_cv(fit)
-print(res.summary())               # 폴드별 score, all / seen / unseen
+예측 cutoff는 대상일 **09:30**입니다.
+
+교수님 제공 데이터는 `known_at` 기준으로 cutoff 이전에 알 수 있었던 정보만 사용하며,
+프리마켓 외부 데이터도 동일하게 09:30 이전에 확정된 값만 사용합니다.
+
+| 데이터 | 사용 규칙 |
+|---|---|
+| 일봉 | 대상일 일봉은 16:00 이후 확정되므로 사용하지 않음 |
+| 1시간봉 | 09:30 시작 봉은 10:30에 끝나므로 09:30 예측에 사용하지 않음 |
+| Reddit | 게시 시각이 cutoff 이전인 글만 가능. 36시간 뒤 확정되는 `score`, `n_comments`는 사용하지 않음 |
+| 프리마켓 | 대상일 09:29까지 끝난 분봉만 사용 |
+| 정답 `day.y` | `predict()` 내부에서 사용하지 않음 |
+
+최종 제출 전 미래 정보 검사를 수행했으며 발표자료 기준 **23,771행에서 미래 정보 사용 0건**을 확인했습니다.
+
+---
+
+## 6. 학습 및 평가 정책
+
+**평가 과정에서는 학습을 추가로 수행하지 않습니다.**
+
+평가 시 허용되는 작업은 다음과 같습니다.
+
+1. 제출된 고정 파라미터/학습 결과 로드
+2. 평가일에 필요한 09:29 프리마켓 데이터 사전 수집·축약
+3. 해당 시점 이전 데이터만 이용한 `gap`, `vol20`, `gap_z` 계산
+4. 고정 임계값을 이용한 label 변환
+5. 분봉 결측 시 B0 fallback
+
+다음 작업은 채점 시 수행하지 않습니다.
+
+1. `fit()` 재실행
+2. CV/홀드아웃을 이용한 하이퍼파라미터 재탐색
+3. 평가 정답을 이용한 `a`, `b`, `lambda` 수정
+4. 평가셋 전체 분포를 사용한 스케일러 재학습
+5. W&B/LLM을 이용한 추가 모델 선택
+
+---
+
+## 7. 제출 전 검증 결과
+
+최종 발표자료 기준 제출 전 검증 결과입니다.
+
+| 검사 항목 | 결과 |
+|---|---|
+| 제출 코드와 기존 구현 비교 | 3,000행 100% 일치 |
+| 분봉 누락 시 B0 일치 | 1,000행 100% 일치 |
+| 미래 정보 사용 검사 | 23,771행 중 0건 |
+| 공통 `main.py` 검사 | 통과 |
+| 별도 환경 재현 | 120,000행 전 열 일치 |
+| ZIP 무결성 | CRC 정상 |
+| Alpaca 인증정보 | 제출 ZIP 루트의 `.env`로 분리 |
+
+---
+
+## 8. 개발 성능 참고
+
+최종 모델은 개발 4폴드에서 선택한 뒤 홀드아웃에서 최종 평가했습니다.
+홀드아웃 결과는 최종 `lambda`, `a`, `b` 선택에 사용하지 않았습니다.
+
+| 모델 | 개발 4폴드 | 홀드아웃 |
+|---|---:|---:|
+| B0 | 0.4469 | 0.5967 |
+| 09:15 | 0.4635 | 0.5996 |
+| 09:28 | 0.4875 | 0.6381 |
+| **09:29 최종** | **0.4957** | **0.6534** |
+
+---
+
+## 9. 제출 ZIP 구성
+
+실행 재현을 위해 아래 파일도 ZIP에 함께 포함합니다.
+
+```text
+submission.zip
+├─ 발표자료.pdf
+├─ main.py
+├─ src/
+│  └─ model.py
+├─ artifacts/
+│  └─ (사전 학습된 파라미터/필요 파일)
+├─ work/
+│  └─ b/features/...
+│     (평가 전 프리마켓 수집에 필요한 코드)
+├─ README.md
+├─ .env
+├─ pyproject.toml
+└─ uv.lock
 ```
 
-기준선 (`uv run python scripts/run_baselines.py`)
-
-| | fold1 | fold2 | fold3 | fold4 | 평균 |
-|---|---|---|---|---|---|
-| 전부 보합 | 0.000 | 0.000 | 0.000 | 0.000 | 0.000 |
-| 어제 label 따라가기 | -0.132 | -0.116 | -0.069 | -0.011 | -0.082 |
-| 개장 전 갭 하나로 구간 나누기 | 0.181 | 0.199 | 0.147 | 0.287 | 0.204 |
-| 전일 종가 기준 시간외 갭으로 구간 나누기 (`eda/cv_check_ovn_gap.py`) | 0.423 | 0.404 | 0.391 | 0.511 | **0.433** |
-
-## 피처 규칙 (AI 에 코드 맡길 때도 이 규칙을 같이 붙여 줄 것)
-
-1. 데이터는 `day` 로만 꺼냄 (`day.daily()`, `day.news()` …). `ds.table()` 로 전체를 읽지 않음
-2. 피처 함수 모양은 `build(day) -> DataFrame[symbol, 피처...]`, 종목당 한 줄
-3. `day.y` 는 predict 안에서 쓰지 않음
-4. Reddit `score`, `n_comments` 는 쓰지 않음 (36시간 뒤 값)
-5. 종목 이름·ID 를 피처로 쓰지 않음. 처음 보는 종목에서 깨짐. 수익률·비율·롤링 값처럼 종목과 무관한 형태로
-6. 정규화·임계값은 train 구간에서만 fit
-7. 최종 피처 코드는 `src/model.py` 안으로 들어가야 함. 채점 때 나머지 `src/` 는 원본으로 덮어써짐
-8. 만든 피처는 누수 검사를 통과시킬 것
-
-```python
-from lab.leak import check_no_leak
-check_no_leak(build, days)        # cutoff 이후 조회, day.y, Reddit score 쓰면 LeakError
-```
-
-## 실험 기록 (W&B)
-
-`run_cv` 를 돌리면 팀 W&B 프로젝트 **BI_finance_project / finance-direction** 에 run 이 하나 생김.
-처음 한 번만 각자 `uv sync` 후 `uv run wandb login` (키는 코드·파일·worklog 에 적지 않음).
-키가 없거나 `WANDB_MODE=disabled` 면 기록 없이 예전처럼 돌아감.
-
-```python
-res = run_cv(fit, name="lgb_v1_match",                 # run 이름
-             config={"features": FEATS, "params": PARAMS, "decode": "match_train"},
-             tags=["lgb"], log_model=False)            # True 면 폴드별 모델을 Artifact 로
-```
-
-- 자동으로 붙는 것: 실행자(git user.name), 커밋·미커밋 여부, 폴드 해시·날짜, 검증 방식, fit 이름, unseen 종목
-- 지표: 폴드별·평균·표준편차 score / accuracy / big_recall / big_prec (all·seen·unseen), 예측·정답 등급 분포,
-  폴드별 혼동행렬, 모델에 `feature_importance` 가 있으면 그것, 갭 규칙 기준선(`baseline/gap/*`, `vs_gap`)
-- 기준선은 `uv run python -m lab.cv baseline` 으로 `cache/baselines/` 에 한 번 만들어 두면 이후 run 에 붙음
-- 올리지 않는 것: 원본 데이터, 예측 행 전체, API 키
-- 임시로 다른 프로젝트에 남기려면 `WANDB_PROJECT=scratch` (lab/wandb.json 은 고치지 않음)
-
-## LLM 호출 (Weave)
-
-`lab/llm.py` 의 `complete()` 하나로 부름. W&B Inference(기본 `OpenPipe/Qwen3-14B-Instruct`)를 쓰고
-호출은 **BI_finance_project / finance-llm** 에 Weave 로 남음. 같은 입력은 `cache/llm/` 에서 꺼내 다시 부르지 않음.
-
-```python
-from lab.llm import complete, estimate, usage
-estimate(batch, max_calls=300)                 # 새로 부를 호출 수 확인. 대량이면 팀에 먼저 말하기
-answers = [complete(m, temperature=0, max_calls=300) for m in batch]
-usage()                                        # 이번 실행 / 누적 호출·토큰
-```
-
-원칙 (API 예산 팀당 14만원, 절반만 쓰기)
-- LLM 은 **학습 기간 데이터 분석·라벨링에만** 씀. `src/model.py` 는 LLM 을 부르지 않음
-  (채점 환경에 키·인터넷 보장 없음, 채점 때 학습 안 다시 돌림). LLM 라벨로 학습한 규칙·작은 모델만 제출에 넣음
-- 입력에 정답(`day.y`)이나 cutoff 이후 정보를 넣지 않음. 뉴스는 `day.news(...)` 로 꺼낸 것만
-- 검증·홀드아웃 기간 기사로 프롬프트를 고르지 않음
-- 근거가 있는 쓰임: 논조로 방향 맞히기가 아니라 "실적·가이던스·소송·M&A 같은 큰 사건 기사인가" (크기 신호)
+`.env`에는 채점에 필요한 Alpaca API Key / Secret이 포함됩니다. 
