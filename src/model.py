@@ -26,7 +26,10 @@ from .data import FLAT
 from .paths import ARTIFACTS
 
 PARAMS_FILE = "gapz_rule.json"
+PM_PARAMS_FILE = "premarket_rule.json"
+DEFAULT_AS_OF = "09:15"
 CLOSE = pd.Timedelta(hours=16)
+PM_TOL = 0.02
 
 
 def build_gapz(day):
@@ -51,6 +54,44 @@ def build_gapz(day):
     return out[cols]
 
 
+def _premarket_store(as_of):
+    """Return the compact input folder for this fixed cutoff."""
+    return "premarket" if as_of == DEFAULT_AS_OF else f"premarket_{as_of.replace(':', '')}"
+
+
+def build_gapz_premarket(day, as_of=DEFAULT_AS_OF):
+    """Use a supplied cutoff-price when it passes the 08:30 unit check.
+
+    Missing files, symbols, or failed checks deliberately retain the B0 gap.
+    """
+    out = build_gapz(day)
+    if out.empty:
+        return out
+    path = ARTIFACTS / _premarket_store(as_of) / f"{pd.Timestamp(day.target):%Y-%m-%d}.parquet"
+    if not path.exists():
+        return out
+    try:
+        pm = pd.read_parquet(path).rename(columns={"px_0915": "px_asof"}).set_index("symbol")
+    except Exception:
+        return out
+    d = day.daily(days=40, columns=["symbol", "date_et", "close", "ret"])
+    r = d.pivot_table(index="date_et", columns="symbol", values="ret", aggfunc="last").sort_index()
+    c = d.pivot_table(index="date_et", columns="symbol", values="close", aggfunc="last").sort_index()
+    if r.empty or c.empty:
+        return out
+    vol20 = r.rolling(20, min_periods=10).std().loc[r.index[-1]]
+    close = c.loc[c.index[-1]]
+    x = out.set_index("symbol")
+    pm = pm.reindex(x.index)
+    # Recover B0's unstandardized price from its gap for the same comparison.
+    px_b0 = close.reindex(x.index) * (1 + x.gap_z * vol20.reindex(x.index))
+    bad = (pm.px_0830 / px_b0 - 1).abs() > PM_TOL
+    gz = ((pm.px_asof / close.reindex(x.index) - 1) / vol20.reindex(x.index)).where(~bad)
+    ok = gz.notna() & np.isfinite(gz)
+    x.loc[ok, "gap_z"] = gz[ok]
+    return x.reset_index()
+
+
 def strength(gap_z, ext_range_z, params):
     x = np.nan_to_num(np.clip((ext_range_z - params["med"]) / params["sd"], -5, 5))
     return gap_z * np.exp(-params["lam"] * x)
@@ -64,13 +105,14 @@ def cut(s, a, b):
 
 
 class Model:
-    def __init__(self, params):
+    def __init__(self, params, premarket=False):
         self.params = params
+        self.premarket = premarket
 
     def predict(self, day):
         """day.symbols 전부에 label. 피처가 없는 종목은 보합."""
         out = pd.DataFrame({"symbol": list(day.symbols)})
-        x = build_gapz(day)
+        x = build_gapz_premarket(day, self.params.get("as_of", DEFAULT_AS_OF)) if self.premarket else build_gapz(day)
         if len(x):
             s = strength(x.gap_z.to_numpy(float), x.ext_range_z.to_numpy(float), self.params)
             x = x.assign(label=cut(s, self.params["a"], self.params["b"]))
@@ -82,5 +124,9 @@ class Model:
 
 
 def load_model():
+    path = ARTIFACTS / PM_PARAMS_FILE
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            return Model(json.load(f), premarket=True)
     with open(ARTIFACTS / PARAMS_FILE, encoding="utf-8") as f:
         return Model(json.load(f))
