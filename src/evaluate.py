@@ -109,6 +109,9 @@ def check(model, days, data=None, symbols=None, n=5):
         test = list(days)
     else:
         _, test = Dataset(data, symbols=symbols).split(days)
+    if not test:
+        print("검사할 날이 없음: 데이터 기간과 --split 경계를 확인하세요.")
+        return 1
     picked = test if len(test) <= n else random.Random(0).sample(test, n)
     picked = sorted(picked, key=lambda d: d.date)
     print(f"{len(picked)}일 검사\n")
