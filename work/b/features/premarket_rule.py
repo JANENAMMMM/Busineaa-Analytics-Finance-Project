@@ -32,6 +32,7 @@ import json
 import os
 import sys
 import time
+import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -149,21 +150,54 @@ def fetch(targets, symbols, store=None, skip_existing=True, verbose=True, as_of=
         return False
     store = Path(store)
     store.mkdir(parents=True, exist_ok=True)
+    requested = sorted(set(symbols))
+    success = True
     for i, d in enumerate(sorted({pd.Timestamp(x).normalize() for x in targets})):
         f = store / f"{d:%Y-%m-%d}.parquet"
+        existing = None
+        needs_dedup = False
+        missing = requested
         if skip_existing and f.exists():
-            continue
+            try:
+                existing = pd.read_parquet(f).rename(columns={"px_0915": "px_asof", "t_0915": "t_asof"})
+                required = {"symbol", "px_0830", "px_asof", "t_asof", "vol_pre"}
+                if not existing.columns.is_unique or not required.issubset(existing.columns):
+                    raise ValueError("invalid cache columns")
+                needs_dedup = existing.symbol.duplicated().any()
+                existing = existing.drop_duplicates("symbol", keep="first")
+                missing = sorted(set(requested) - set(existing.symbol))
+            except Exception as e:
+                print(f"  {d.date()} cached file invalid: {type(e).__name__}; preserved")
+                success = False
+                continue
+            if not missing and not needs_dedup:
+                continue
         s = d.tz_localize(ET)
+        temp_path = None
         try:
-            bars = _get(hdr, list(symbols), (s + START).isoformat(), (s + _td(as_of)).isoformat())
+            if missing:
+                bars = _get(hdr, missing, (s + START).isoformat(), (s + _td(as_of)).isoformat())
+                added = reduce_bars(bars, d, as_of)
+                added = added[added.symbol.isin(missing)]
+            else:
+                added = existing.iloc[:0].copy()
+            combined = pd.concat([existing, added], ignore_index=True) if existing is not None else added
+            combined = combined.drop_duplicates("symbol", keep="first")
+            with tempfile.NamedTemporaryFile(dir=store, suffix=".parquet.tmp", delete=False) as tmp:
+                temp_path = Path(tmp.name)
+            combined.to_parquet(temp_path, index=False)
+            temp_path.replace(f)
         except Exception as e:  # noqa: BLE001  받기 실패는 그 날만 B0 로
             print(f"  {d.date()} 받기 실패: {type(e).__name__}")
+            success = False
             continue
-        reduce_bars(bars, d, as_of).to_parquet(f, index=False)
+        finally:
+            if temp_path is not None and temp_path.exists():
+                temp_path.unlink()
         if verbose and i % 50 == 0:
             print(f"  {d.date()} 저장 ({i + 1})", flush=True)
         time.sleep(0.35)
-    return True
+    return success
 
 
 # ------------------------------------------------------------------ 피처

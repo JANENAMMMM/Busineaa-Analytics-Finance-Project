@@ -18,6 +18,8 @@
 """
 
 import json
+import warnings
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
@@ -59,6 +61,58 @@ def _premarket_store(as_of):
     return "premarket" if as_of == DEFAULT_AS_OF else f"premarket_{as_of.replace(':', '')}"
 
 
+def _read_premarket_cache(path, target, as_of):
+    """Validate external cache rows before allowing them into inference."""
+    def warn(reason):
+        warnings.warn(f"Premarket cache {path.name}: {reason}; using after-hours gap for rejected rows",
+                      RuntimeWarning, stacklevel=3)
+
+    try:
+        pm = pd.read_parquet(path).rename(columns={"px_0915": "px_asof", "t_0915": "t_asof"})
+    except Exception as exc:
+        warn(f"unreadable parquet ({type(exc).__name__})")
+        return None
+    required = {"symbol", "px_0830", "px_asof", "t_asof"}
+    if not pm.columns.is_unique or not required.issubset(pm.columns):
+        warn("missing or duplicate required columns")
+        return None
+    pm = pm.copy()
+    target = pd.Timestamp(target)
+    if target.tzinfo is not None:
+        target = target.tz_convert("America/New_York").tz_localize(None)
+    target = target.normalize()
+    hh, mm = map(int, str(as_of).split(":"))
+    limit = target + pd.Timedelta(hours=hh, minutes=mm)
+
+    def valid_time(value):
+        try:
+            if not isinstance(value, (str, datetime, np.datetime64)):
+                return False
+            stamp = pd.Timestamp(value)
+            if pd.isna(stamp):
+                return False
+            if stamp.tzinfo is not None:
+                stamp = stamp.tz_convert("America/New_York").tz_localize(None)
+            return (stamp.normalize() == target and stamp >= target + pd.Timedelta(hours=8)
+                    and stamp == stamp.floor("min") and stamp + pd.Timedelta(minutes=1) <= limit)
+        except (ValueError, TypeError, OverflowError):
+            return False
+
+    good_symbol = pm.symbol.map(lambda v: isinstance(v, str) and bool(v.strip()))
+    duplicates = pm.symbol.where(good_symbol, None).duplicated(keep=False)
+    asof_price = pd.to_numeric(pm.px_asof, errors="coerce")
+    check_price = pd.to_numeric(pm.px_0830, errors="coerce")
+    # No trade before 08:30 is a legitimate missing unit-check price in legacy caches.
+    good_check = pm.px_0830.isna() | (np.isfinite(check_price) & (check_price > 0))
+    good = (good_symbol & ~duplicates & np.isfinite(asof_price) & (asof_price > 0)
+            & good_check & pm.t_asof.map(valid_time)).fillna(False)
+    if not good.all():
+        rejected = list(dict.fromkeys(str(v) for v in pm.loc[~good, "symbol"]))
+        warn(f"invalid price/time/symbol or duplicate symbol: {', '.join(rejected[:10])} ({len(pm) - int(good.sum())} rows)")
+    pm["px_asof"], pm["px_0830"] = asof_price, check_price
+    return pm.loc[good].set_index("symbol")
+
+
 def build_gapz_premarket(day, as_of=DEFAULT_AS_OF):
     """Use a supplied cutoff-price when it passes the 08:30 unit check.
 
@@ -70,9 +124,8 @@ def build_gapz_premarket(day, as_of=DEFAULT_AS_OF):
     path = ARTIFACTS / _premarket_store(as_of) / f"{pd.Timestamp(day.target):%Y-%m-%d}.parquet"
     if not path.exists():
         return out
-    try:
-        pm = pd.read_parquet(path).rename(columns={"px_0915": "px_asof"}).set_index("symbol")
-    except Exception:
+    pm = _read_premarket_cache(path, day.target, as_of)
+    if pm is None or pm.empty:
         return out
     d = day.daily(days=40, columns=["symbol", "date_et", "close", "ret"])
     r = d.pivot_table(index="date_et", columns="symbol", values="ret", aggfunc="last").sort_index()
