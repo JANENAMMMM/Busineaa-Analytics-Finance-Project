@@ -305,8 +305,8 @@ def main(argv):
     if not targets:
         ap.error("수집할 대상일이 없습니다. 날짜 범위를 확인하세요")
     print(f"대상일 {len(targets)}개 ({min(targets).date()} ~ {max(targets).date()}), 종목 {len(syms)}개, as_of {_tag(a.as_of)} → {store}")
-    fetch(targets, syms, store, as_of=a.as_of)
+    return 0 if fetch(targets, syms, store, as_of=a.as_of) else 1
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    raise SystemExit(main(sys.argv[1:]))

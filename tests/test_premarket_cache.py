@@ -140,6 +140,24 @@ def test_fetch_invalid_existing_cache_preserved(tmp_path, monkeypatch, problem):
     assert path.read_bytes() == before
 
 
+def test_fetch_cli_reports_failure_with_nonzero_exit(tmp_path, monkeypatch):
+    path = tmp_path / "2026-09-11.parquet"
+    path.write_bytes(b"broken parquet")
+    monkeypatch.setattr(collector, "_keys", lambda: {"key": "test"})
+    assert collector.main(["fetch", "--target-date", "2026-09-11", "--symbols", "AMD",
+                           "--as-of", "09:29", "--store", str(tmp_path)]) == 1
+    assert path.read_bytes() == b"broken parquet"
+
+
+def test_fetch_cli_reports_success_with_zero_exit(tmp_path, monkeypatch):
+    monkeypatch.setattr(collector, "_keys", lambda: {"key": "test"})
+    monkeypatch.setattr(collector, "_get", lambda *args: pd.DataFrame())
+    monkeypatch.setattr(collector, "reduce_bars", lambda *args: pd.DataFrame([row()]))
+    monkeypatch.setattr(collector.time, "sleep", lambda _: None)
+    assert collector.main(["fetch", "--target-date", "2026-09-11", "--symbols", "AMD",
+                           "--as-of", "09:29", "--store", str(tmp_path)]) == 0
+
+
 def test_fetch_removes_existing_duplicates_without_api(tmp_path, monkeypatch):
     path = tmp_path / "2026-09-11.parquet"
     pd.DataFrame([row(), row()]).to_parquet(path, index=False)
