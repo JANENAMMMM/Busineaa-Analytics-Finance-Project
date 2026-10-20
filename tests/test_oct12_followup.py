@@ -13,7 +13,21 @@ SPEC = json.loads((ROOT / 'lab/folds.json').read_text(encoding='utf-8'))
 CUTOFF = pd.Timedelta(hours=9, minutes=30)
 pytestmark = pytest.mark.skipif(not OUT.exists(), reason='follow-up run not present')
 
+# Only the decision JSONs are committed; the panels, caches and the oct10 models
+# below are produced locally, so each test skips when its own input is absent.
+PRICE = ROOT / 'dataset/price.parquet'
+RECENCY = ROOT / 'cache/oct12_price_recency.parquet'
+NOVELTY = OUT / 'novelty_panel_coded.csv'
+T1_PANEL = OUT / 't1_screen_panel.csv'
+P1_PRED = OUT / 'p1_predictions.parquet'
+HOLDOUT = ROOT / 'reports/final_study/holdout_metrics.csv'
+OCT10_MODELS = ROOT / 'lab/oct10_models.py'
 
+needs_recency = pytest.mark.skipif(not (RECENCY.exists() and PRICE.exists()),
+                                   reason='cache/oct12_price_recency.parquet or dataset/ unavailable')
+
+
+@needs_recency
 def test_price_recency_uses_only_bars_known_before_the_open():
     """Every bar behind the features is published strictly before the target 09:30."""
     r = pd.read_parquet(ROOT / 'cache/oct12_price_recency.parquet')
@@ -29,6 +43,7 @@ def test_price_recency_uses_only_bars_known_before_the_open():
     assert len(window) and window.known_at.max() == one.target + CUTOFF - pd.Timedelta(minutes=one.price_age_min)
 
 
+@needs_recency
 def test_adding_later_days_does_not_change_earlier_price_features():
     """Recomputing the window from a truncated price file reproduces the earlier rows."""
     r = pd.read_parquet(ROOT / 'cache/oct12_price_recency.parquet')
@@ -61,6 +76,7 @@ def test_adding_later_days_does_not_change_earlier_price_features():
                                    check_names=False)
 
 
+@pytest.mark.skipif(not NOVELTY.exists(), reason='novelty_panel_coded.csv not present')
 def test_missing_zero_and_not_computed_are_separate_codes():
     z = pd.read_csv(OUT / 'novelty_panel_coded.csv')
     codes = set(z.novelty_code.unique())
@@ -74,6 +90,7 @@ def test_missing_zero_and_not_computed_are_separate_codes():
     assert z.loc[z.gap_code == 'gap_exact_zero', 'gap_z'].eq(0).all()
 
 
+@pytest.mark.skipif(not T1_PANEL.exists(), reason='t1_screen_panel.csv not present')
 def test_t1_novelty_threshold_uses_only_earlier_days():
     """A held day has fewer than 20 prior observations and no high/low verdict."""
     z = pd.read_csv(OUT / 't1_screen_panel.csv', parse_dates=['date'])
@@ -85,6 +102,8 @@ def test_t1_novelty_threshold_uses_only_earlier_days():
         assert g.prior_days.is_monotonic_increasing
 
 
+@pytest.mark.skipif(not (P1_PRED.exists() and T1_PANEL.exists()),
+                    reason='p1_predictions.parquet or t1_screen_panel.csv not present')
 def test_symbol_exclusion_and_evaluation_universe_hold():
     pred = pd.read_parquet(OUT / 'p1_predictions.parquet')
     for (fold, kind), g in pred.groupby(['fold', 'kind']):
@@ -104,6 +123,7 @@ def test_neither_candidate_was_adopted():
     assert json.loads((OUT / 't1_decision.json').read_text(encoding='utf-8'))['passed'] is False
 
 
+@pytest.mark.skipif(not OCT10_MODELS.exists(), reason='lab/oct10_models.py not present')
 def test_expected_cost_decoder_is_sane():
     from scripts.oct12_cost_decode import decode, base_cost
     import numpy as np
@@ -128,6 +148,7 @@ def test_cost_decode_reproduces_the_earlier_lightgbm_scores():
     assert all(c['passed'] is False for c in d['candidates'])
 
 
+@pytest.mark.skipif(not P1_PRED.exists(), reason='p1_predictions.parquet not present')
 def test_official_variant_reproduces_the_shipped_score():
     """The 'official' ruler must be the real one, or the whole comparison is off."""
     from scripts.oct12_metric_robustness import chance_corrected, weights
@@ -145,6 +166,7 @@ def test_official_variant_reproduces_the_shipped_score():
             assert np.isnan(v) or abs(v) < 1e-12, (name, k, v)
 
 
+@pytest.mark.skipif(not HOLDOUT.exists(), reason='reports/final_study/holdout_metrics.csv not present')
 def test_holdout_gap_matches_both_recorded_sources():
     """The dev side must reproduce the frozen fold scores; the holdout side must only quote."""
     import json
