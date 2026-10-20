@@ -1,0 +1,65 @@
+{
+  "development_fold_scores": {
+    "fold1": 0.434422,
+    "fold2": 0.435603,
+    "fold3": 0.402021,
+    "fold4": 0.515419
+  },
+  "development_fold_direction": {
+    "fold1": 0.558252,
+    "fold2": 0.53998,
+    "fold3": 0.519662,
+    "fold4": 0.584196
+  },
+  "development_fold_mean_score": 0.446866231540839,
+  "development_pooled": {
+    "score": 0.45362643365564237,
+    "accuracy": 0.26216666666666666,
+    "direction": 0.5509102322661644,
+    "big_recall": 0.5339031339031339,
+    "big_prec": 0.17400185701021356
+  },
+  "holdout": {
+    "score": 0.596716404211983,
+    "accuracy": 0.3021917808219178,
+    "direction": 0.6913902348117779,
+    "big_recall": 0.571773220747889,
+    "big_prec": 0.273356401384083
+  },
+  "score_gap_vs_fold_mean": 0.14985017267114403,
+  "score_gap_vs_pooled": 0.14308997055634065,
+  "holdout_direction_above_every_dev_fold": true,
+  "best_dev_fold_direction": 0.5841956726246472,
+  "by_group": {
+    "all": {
+      "dev_direction": 0.5509102322661644,
+      "holdout_direction": 0.6913902348117779,
+      "direction_gain": 0.14048000254561344,
+      "dev_score": 0.45362643365564237,
+      "holdout_score": 0.596716404211983
+    },
+    "unseen": {
+      "dev_direction": 0.531980319803198,
+      "holdout_direction": 0.6789667896678967,
+      "direction_gain": 0.14698646986469865,
+      "dev_score": 0.37406014584366454,
+      "holdout_score": 0.556022113737686
+    },
+    "seen": {
+      "dev_direction": 0.5557658936740811,
+      "holdout_direction": 0.694535263895376,
+      "direction_gain": 0.13876937022129487,
+      "dev_score": 0.4733670329066578,
+      "holdout_score": 0.6068217635652096
+    },
+    "balanced20": {
+      "dev_direction": 0.526246719160105,
+      "holdout_direction": 0.6854146806482364,
+      "direction_gain": 0.1591679614881314,
+      "dev_score": 0.39170518790416553,
+      "holdout_score": 0.569695714203722
+    }
+  },
+  "holdout_input": "reports/final_study/holdout_metrics.csv (aggregates from the 2026-10-09 pre-registered run); no holdout labels or predictions were read here",
+  "reading": "B0 did not get better. The gap predicted direction far more often in the evaluation period (0.691) than in any development fold (best 0.584), and the jump is the same size in every symbol group, so it is a property of the period and not of which companies were scored. Quoting 0.597 next to another team s number without saying this compares two different periods would overstate it."
+}

@@ -1,0 +1,32 @@
+{
+  "equal_to_B_rule": 1.0,
+  "rows_compared": 3000,
+  "fallback_equal_to_B0": 1.0,
+  "fallback_rows": 1000,
+  "bars_ending_after_cutoff": 0,
+  "store_rows": 23771,
+  "params": {
+    "lam": 0.0,
+    "med": 1.4674696322842244,
+    "sd": 4.970848399380073,
+    "a": 0.07606916910295983,
+    "b": 0.25106205730365594,
+    "train_score": 0.5397313271350802,
+    "as_of": "09:29"
+  },
+  "provenance": {
+    "as_of": "09:29",
+    "store": "artifacts\\premarket_0929",
+    "days": 522,
+    "first_target": "2024-08-14",
+    "last_target": "2026-09-14",
+    "store_files_used": 522,
+    "store_sha256": "019916cd39ff88e05d6caf183fcdba8522fc0611f620de8b8ed14a3ce5726525",
+    "missing_targets_fall_back_to_B0": [],
+    "symbols": "all public symbols in day.symbols",
+    "selection_evidence": [
+      "reports/premarket_holdout/result.json",
+      "reports/premarket_compare/0929_vs_0928.json"
+    ]
+  }
+}

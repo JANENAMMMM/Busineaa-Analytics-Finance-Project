@@ -1,0 +1,35 @@
+{
+  "study": "development-only descriptive comparison after prior holdout",
+  "holdout_from": "2026-06-01",
+  "models": ["B0", "B0_premarket", "XGB_X1", "XGB_PM_X1"],
+  "base_features": ["gap_z", "ext_range_z", "vol20", "ret1_z", "ret5_z", "earn_now"],
+  "premarket_features": ["pm_gap_z", "ext_range_z", "vol20", "ret1_z", "ret5_z", "earn_now", "pm_move_z", "log1p_vol_pre", "pm_available"],
+  "xgboost": {
+    "version": "3.4.1",
+    "objective": "reg:squarederror",
+    "tree_method": "hist",
+    "max_depth": 2,
+    "n_estimators": 300,
+    "learning_rate": 0.03,
+    "min_child_weight": 100,
+    "reg_lambda": 20,
+    "subsample": 1.0,
+    "colsample_bytree": 1.0,
+    "random_state": 2026,
+    "n_jobs": 4,
+    "base_score": 0.0,
+    "target": "label_minus_2",
+    "monotone_constraints": {
+      "XGB_X1": [1, 0, 0, 0, 0, 0],
+      "XGB_PM_X1": [1, 0, 0, 0, 0, 0, 0, 0, 0]
+    }
+  },
+  "decoder": {
+    "method": "outer-train last 120 sessions, expanding 3 x 40 validation sessions, 12-session embargo; choose a,b on fixed absolute-score quantile grid; ties prefer larger b then a",
+    "quantiles": [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.9, 0.95, 0.975, 0.99]
+  },
+  "bootstrap": {"block_days": 5, "replicates": 2000, "seed": 2026, "interval": "paired percentile 95%"},
+  "rulers": ["official", "flat_credit", "linear", "plain_qwk", "extreme_only"],
+  "api_calls": 0,
+  "submission_model_changed": false
+}

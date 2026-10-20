@@ -32,20 +32,13 @@ EXTRA = ["SPY", "QQQ"]
 
 
 def keys():
-    names = ["APCA_API_KEY_ID", "APCA_API_SECRET_KEY"]
-    vals = [os.environ.get(n) for n in names]
-    if not all(vals) and sys.platform == "win32":
-        import winreg
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as k:
-            vals = [v or winreg.QueryValueEx(k, n)[0] for v, n in zip(vals, names)]
-    if not all(vals):
-        f = ROOT / "artifacts" / "alpaca_key.json"
-        if f.exists():
-            d = json.loads(f.read_text(encoding="utf-8"))
-            vals = [d.get(n) for n in names]
-    if not all(vals):
-        raise SystemExit("Alpaca 키가 없습니다")
-    return {"APCA-API-KEY-ID": vals[0], "APCA-API-SECRET-KEY": vals[1]}
+    """premarket_rule._keys() 와 같은 순서로 찾음 (환경변수 → winreg → .env → alpaca_key.json)."""
+    sys.path.insert(0, str(ROOT / "work/b/features"))
+    import premarket_rule as PR
+    hdr = PR._keys()
+    if hdr is None:
+        raise SystemExit("Alpaca 키가 없습니다 (.env 의 APCA_API_KEY_ID / APCA_API_SECRET_KEY 확인)")
+    return hdr
 
 
 def get_bars(hdr, symbols, start, end):

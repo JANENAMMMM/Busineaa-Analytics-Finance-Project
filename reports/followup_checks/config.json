@@ -1,0 +1,93 @@
+{
+  "scope": "development target < 2026-06-01. No holdout labels or scores read. 0 API calls. Submission unchanged.",
+  "order": [
+    "step1_recount",
+    "t1_screen",
+    "p1_four_fold",
+    "t1_four_fold_only_if_screen_passes"
+  ],
+  "seed": 2026,
+  "folds": "lab/folds.json, 40 training symbols, 50 evaluation symbols, src.data.score",
+  "p1": {
+    "features": [
+      "gap_z",
+      "post_ret_z",
+      "pre_move_z",
+      "price_age_min",
+      "has_pre"
+    ],
+    "logistic": {
+      "C": 1.0,
+      "class_weight": null,
+      "preprocessing": "train-only median impute, train-only standardisation, missing indicator per feature"
+    },
+    "confidence_threshold": 0.65,
+    "rewrite": "up -> 3, down -> 1, only when B0 points elsewhere, flat B0 rows included",
+    "gate": "fold-wise on/off by the existing inner 3-block 12-day-embargo mean gain; ties off"
+  },
+  "t1": {
+    "source": "cache/oct11_llm_full/full.parquet, no new calls",
+    "novelty": "symbol-day title bundle, 1 - max TF-IDF cosine to the previous 20 trading-day documents, IDF on prior documents only",
+    "high_rule": "80% quantile of the same symbol's strictly earlier novelty; held when fewer than 20 prior observed days",
+    "screen_gate": {
+      "min_moved_with_direction": 100,
+      "min_disagree": 50,
+      "hit_min": 0.58,
+      "one_sided_p_lt": 0.01,
+      "disagree_hit_gt": 0.5
+    }
+  },
+  "adoption": {
+    "mean_gain": ">= 0.005",
+    "up_folds": ">= 3",
+    "fold4_unseen_balanced20": ">= 0",
+    "bootstrap": "5-trading-day blocks of 50-symbol days, 2000 draws, seed 2026, 2.5% quantile > 0 (family of 2)"
+  },
+  "stop_reasons": {
+    "T1": {
+      "stage": "fold1-train screen",
+      "failed": [
+        "hit_min",
+        "one_sided_p_lt",
+        "disagree_hit_gt"
+      ],
+      "numbers": {
+        "moved_with_direction": 602,
+        "hit_rate": 0.5149501661129569,
+        "p_one_sided": 0.244211832580964,
+        "disagree_n": 287,
+        "disagree_hit_rate": 0.3205574912891986
+      },
+      "action": "terminated; novelty definition, window and prompt were not re-tuned"
+    },
+    "P1": {
+      "stage": "four-fold development validation",
+      "failed": [
+        "mean_gain < 0.005",
+        "up_folds < 3",
+        "fold4_gain < 0",
+        "bootstrap 2.5% quantile <= 0"
+      ],
+      "numbers": {
+        "mean_gain": 0.0016654561923211408,
+        "up_folds": 1,
+        "fold4_gain": -1.2163926268682346e-05,
+        "lower_adjusted": -0.000207514780828362
+      },
+      "action": "not adopted"
+    }
+  },
+  "b0_reproduction": {
+    "mean": 0.446866231540839,
+    "reference": 0.446866,
+    "difference": 2.3154083900189804e-07
+  },
+  "input_digests": {
+    "reports/oct10_extension/development.parquet": "e2bcd971a174626a",
+    "cache/b_v1.parquet": "48f8527c7752fd81",
+    "cache/oct12_price_recency.parquet": "e8f548d4ba3f47fe",
+    "cache/oct11_llm_full/full.parquet": "f1b2533c562498a8",
+    "lab/folds.json": "8ba16f8925e4381a"
+  },
+  "limitation": "these are repeatedly inspected development results; no holdout evidence either way"
+}

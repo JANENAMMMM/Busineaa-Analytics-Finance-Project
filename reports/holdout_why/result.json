@@ -1,0 +1,138 @@
+{
+  "periods": {
+    "fold1": {
+      "rows": 3000,
+      "extreme_share": 0.099667,
+      "flat_share": 0.382,
+      "mean_abs_ret_pct": 1.178501,
+      "mean_abs_gap_z": 0.314789,
+      "share_abs_gap_ge1": 0.043333,
+      "share_abs_gap_ge2": 0.012333,
+      "gap_direction_hit_moved": 0.662703,
+      "corr_gap_ret": 0.515912,
+      "market_gap_ret_corr": 0.601644,
+      "market_gap_sign_hit": 0.633333,
+      "mean_abs_market_gap": 0.143485,
+      "score_B0": 0.434422,
+      "score_pm0928": 0.497826,
+      "score_pm0929": 0.50499
+    },
+    "fold2": {
+      "rows": 3000,
+      "extreme_share": 0.129333,
+      "flat_share": 0.341333,
+      "mean_abs_ret_pct": 1.333819,
+      "mean_abs_gap_z": 0.331222,
+      "share_abs_gap_ge1": 0.050667,
+      "share_abs_gap_ge2": 0.012667,
+      "gap_direction_hit_moved": 0.657215,
+      "corr_gap_ret": 0.442284,
+      "market_gap_ret_corr": 0.386511,
+      "market_gap_sign_hit": 0.7,
+      "mean_abs_market_gap": 0.151547,
+      "score_B0": 0.435603,
+      "score_pm0928": 0.442461,
+      "score_pm0929": 0.468842
+    },
+    "fold3": {
+      "rows": 3000,
+      "extreme_share": 0.160667,
+      "flat_share": 0.330333,
+      "mean_abs_ret_pct": 1.464323,
+      "mean_abs_gap_z": 0.318252,
+      "share_abs_gap_ge1": 0.045667,
+      "share_abs_gap_ge2": 0.014333,
+      "gap_direction_hit_moved": 0.636179,
+      "corr_gap_ret": 0.482079,
+      "market_gap_ret_corr": 0.51453,
+      "market_gap_sign_hit": 0.683333,
+      "mean_abs_market_gap": 0.115015,
+      "score_B0": 0.402021,
+      "score_pm0928": 0.449366,
+      "score_pm0929": 0.442127
+    },
+    "fold4": {
+      "rows": 3000,
+      "extreme_share": 0.195333,
+      "flat_share": 0.291333,
+      "mean_abs_ret_pct": 1.667521,
+      "mean_abs_gap_z": 0.373702,
+      "share_abs_gap_ge1": 0.065667,
+      "share_abs_gap_ge2": 0.017,
+      "gap_direction_hit_moved": 0.672471,
+      "corr_gap_ret": 0.518599,
+      "market_gap_ret_corr": 0.628504,
+      "market_gap_sign_hit": 0.666667,
+      "mean_abs_market_gap": 0.187703,
+      "score_B0": 0.515419,
+      "score_pm0928": 0.560333,
+      "score_pm0929": 0.566748
+    },
+    "holdout": {
+      "rows": 3650,
+      "extreme_share": 0.227123,
+      "flat_share": 0.264932,
+      "mean_abs_ret_pct": 1.788502,
+      "mean_abs_gap_z": 0.359848,
+      "share_abs_gap_ge1": 0.047945,
+      "share_abs_gap_ge2": 0.008767,
+      "gap_direction_hit_moved": 0.72568,
+      "corr_gap_ret": 0.536541,
+      "market_gap_ret_corr": 0.519846,
+      "market_gap_sign_hit": 0.726027,
+      "mean_abs_market_gap": 0.105022,
+      "score_B0": 0.596716,
+      "score_pm0928": 0.638094,
+      "score_pm0929": 0.653353
+    }
+  },
+  "counterfactual_score": {
+    "B0": {
+      "holdout": 0.596716404211983,
+      "holdout_reweighted_to_dev_gap_mix": 0.5760911187460869,
+      "dev_pooled": 0.45362643365564237
+    },
+    "pm0928": {
+      "holdout": 0.6380937268164295,
+      "holdout_reweighted_to_dev_gap_mix": 0.6224868873044265,
+      "dev_pooled": 0.49300181062560133
+    },
+    "pm0929": {
+      "holdout": 0.6533527249303639,
+      "holdout_reweighted_to_dev_gap_mix": 0.6369389671629049,
+      "dev_pooled": 0.49832185389596306
+    }
+  },
+  "direction_decomposition": {
+    "dev_pooled_hit": 0.6573629704470826,
+    "holdout_hit": 0.7256802087215802,
+    "holdout_hit_with_dev_mix": 0.7153839371306411,
+    "dev_hit_with_holdout_mix": 0.667890208463091
+  },
+  "bin_share_dev": {
+    "<0.5": 0.8219,
+    "0.5-1": 0.1265,
+    "1-2": 0.0374,
+    ">=2": 0.0141
+  },
+  "bin_share_holdout": {
+    "<0.5": 0.7611,
+    "0.5-1": 0.191,
+    "1-2": 0.0392,
+    ">=2": 0.0088
+  },
+  "label_mix_counterfactual": {
+    "B0": {
+      "holdout": 0.596716404211983,
+      "holdout_label_mix_dev": 0.5681952383657102,
+      "dev_pooled": 0.45362643365564237,
+      "dev_label_mix_holdout": 0.4829508843319772
+    },
+    "pm0929": {
+      "holdout": 0.6533527249303639,
+      "holdout_label_mix_dev": 0.6201610525025547,
+      "dev_pooled": 0.49832185389596306,
+      "dev_label_mix_holdout": 0.5301984912446992
+    }
+  }
+}
